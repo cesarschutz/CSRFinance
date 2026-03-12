@@ -21,7 +21,7 @@ interface NavItem {
         <div class="logo">
           <span class="logo-icon">💰</span>
           @if (!collapsed) {
-            <span class="logo-text">FinControl</span>
+            <span class="logo-text">CSRFinance</span>
           }
         </div>
         <button class="collapse-btn" (click)="toggleCollapse()" aria-label="Colapsar sidebar">

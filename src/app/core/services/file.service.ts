@@ -69,7 +69,7 @@ export class FileService implements OnDestroy {
         this.fileNameSignal.set(handle.name);
       } else {
         this.fileHandle = null;
-        this.fileNameSignal.set('FinControl.xlsx');
+        this.fileNameSignal.set('CSRFinance.xlsx');
       }
 
       this.statusSignal.set('saving');
@@ -138,7 +138,7 @@ export class FileService implements OnDestroy {
       if (this.fileHandle) {
         await this.writeToFile(wb);
       } else {
-        this.downloadBlob(wb, this.fileNameSignal() ?? 'FinControl.xlsx');
+        this.downloadBlob(wb, this.fileNameSignal() ?? 'CSRFinance.xlsx');
       }
 
       this.statusSignal.set('saved');
@@ -165,8 +165,8 @@ export class FileService implements OnDestroy {
       if (this.fileHandle) {
         await this.writeToFile(wb);
       } else {
-        this.downloadBlob(wb, 'FinControl.xlsx');
-        this.fileNameSignal.set('FinControl.xlsx');
+        this.downloadBlob(wb, 'CSRFinance.xlsx');
+        this.fileNameSignal.set('CSRFinance.xlsx');
       }
 
       this.statusSignal.set('saved');
@@ -382,7 +382,7 @@ export class FileService implements OnDestroy {
 
   private async pickSaveFile(): Promise<any> {
     return (window as any).showSaveFilePicker({
-      suggestedName: 'FinControl.xlsx',
+      suggestedName: 'CSRFinance.xlsx',
       types: [{
         description: 'Planilha Excel',
         accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] },

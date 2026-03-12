@@ -1,4 +1,4 @@
-# FinControl - Sistema Financeiro Pessoal
+# CSRFinance - Sistema Financeiro Pessoal
 
 ## Descrição
 Sistema financeiro pessoal inspirado no Mobills, construído em Angular 19+ com standalone components, responsivo (mobile-first), e preparado para futura integração com backend.

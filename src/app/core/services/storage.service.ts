@@ -10,8 +10,8 @@ export interface StorageAdapter {
 
 @Injectable({ providedIn: 'root' })
 export class StorageService implements StorageAdapter {
-  private readonly prefix = 'fincontrol_';
-  private readonly VERSION_KEY = 'fincontrol_version';
+  private readonly prefix = 'csrfinance_';
+  private readonly VERSION_KEY = 'csrfinance_version';
   private readonly CURRENT_VERSION = '2';
 
   /** Emits the unprefixed key whenever data is written or removed. */
