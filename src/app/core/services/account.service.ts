@@ -1,7 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Account } from '../models/account.model';
 import { StorageService } from './storage.service';
-import { SEED_ACCOUNTS } from '../seed-data';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -24,16 +23,16 @@ export class AccountService {
 
   private load(): void {
     const stored = this.storage.get<Account[]>(this.STORAGE_KEY);
-    if (stored && stored.length > 0) {
-      this.accountsSignal.set(stored);
-    } else {
-      this.accountsSignal.set(SEED_ACCOUNTS);
-      this.save();
-    }
+    this.accountsSignal.set(stored ?? []);
   }
 
   private save(): void {
     this.storage.set(this.STORAGE_KEY, this.accountsSignal());
+  }
+
+  loadFromData(accounts: Account[]): void {
+    this.accountsSignal.set(accounts);
+    this.save();
   }
 
   selectAccount(id: string | null): void {

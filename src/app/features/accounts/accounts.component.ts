@@ -40,9 +40,10 @@ export class AccountsComponent {
   });
 
   readonly accounts = computed(() => this.accountService.accounts());
+  readonly balances = computed(() => this.transactionService.accountBalances());
 
   getBalance(accountId: string): number {
-    return this.transactionService.getAccountBalance(accountId);
+    return this.balances().get(accountId) ?? 0;
   }
 
   getGradient(color: string): string {

@@ -68,7 +68,7 @@ interface NavItem {
             @if (!collapsed) {
               <span class="account-name">{{ account.name }}</span>
               <span class="account-balance money">
-                {{ transactionService.getAccountBalance(account.id) | currencyBrl }}
+                {{ (transactionService.accountBalances().get(account.id) ?? 0) | currencyBrl }}
               </span>
             }
           </button>
@@ -86,7 +86,7 @@ interface NavItem {
         @if (!collapsed) {
           <span class="footer-label">Patrimônio Total</span>
           <span class="footer-value money">
-            {{ transactionService.getTotalBalance() | currencyBrl }}
+            {{ transactionService.totalBalance() | currencyBrl }}
           </span>
         } @else {
           <span class="footer-icon">💎</span>

@@ -42,11 +42,13 @@ export class DashboardComponent {
   // --- Summary cards ---
   summaryCards = computed<SummaryCard[]>(() => {
     const accountId = this.accountService.selectedAccountId();
+    // Explicitly depend on transactions signal for reactivity
+    this.transactionService.transactions();
     const summary = this.transactionService.getSummary(this.year(), this.month(), accountId);
 
     const currentBalance = accountId
       ? this.transactionService.getAccountBalance(accountId)
-      : this.transactionService.getTotalBalance();
+      : this.transactionService.totalBalance();
 
     return [
       { label: 'Saldo Atual', value: currentBalance, type: 'balance', icon: '💰' },
@@ -59,6 +61,7 @@ export class DashboardComponent {
   // --- Donut chart (expenses by category) ---
   donutSegments = computed<DonutSegment[]>(() => {
     const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
     const expensesByCategory = this.transactionService.getExpensesByCategory(
       this.year(), this.month(), accountId,
     );
@@ -81,6 +84,7 @@ export class DashboardComponent {
   // --- Bar chart (last 6 months: income vs expenses) ---
   barChartData = computed<ChartConfiguration<'bar'>['data']>(() => {
     const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
     const monthlyTotals = this.transactionService.getMonthlyTotals(6, accountId);
 
     return {

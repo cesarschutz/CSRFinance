@@ -74,6 +74,7 @@ export class ReportsComponent {
 
   categoryData = computed<CategoryReport[]>(() => {
     const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
     const expensesByCategory = this.transactionService.getExpensesByCategory(
       this.year(), this.month(), accountId,
     );
@@ -116,6 +117,7 @@ export class ReportsComponent {
 
   dailyExpenses = computed<DailyExpense[]>(() => {
     const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
     const dailyMap = this.transactionService.getDailyExpenses(
       this.year(), this.month(), accountId,
     );
@@ -145,6 +147,7 @@ export class ReportsComponent {
 
   dailyChartData = computed<ChartConfiguration<'line'>['data']>(() => {
     const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
     const dailyMap = this.transactionService.getDailyExpenses(
       this.year(), this.month(), accountId,
     );
@@ -233,6 +236,7 @@ export class ReportsComponent {
 
   monthlyBalances = computed<MonthlyBalance[]>(() => {
     const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
     const totals = this.transactionService.getMonthlyTotals(6, accountId);
 
     return totals.map(t => ({

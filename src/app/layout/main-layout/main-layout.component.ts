@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { MobileNavComponent } from '../mobile-nav/mobile-nav.component';
+import { FileBarComponent } from '../../shared/components/file-bar/file-bar.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, SidebarComponent, MobileNavComponent],
+  imports: [CommonModule, RouterModule, SidebarComponent, MobileNavComponent, FileBarComponent],
   template: `
     @if (!isMobile()) {
       <app-sidebar
@@ -19,6 +20,7 @@ import { MobileNavComponent } from '../mobile-nav/mobile-nav.component';
     <main class="main-content"
           [class.with-sidebar]="!isMobile()"
           [class.sidebar-collapsed]="!isMobile() && sidebarCollapsed()">
+      <app-file-bar />
       <router-outlet />
     </main>
 

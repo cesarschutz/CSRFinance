@@ -1,4 +1,4 @@
-export type TransactionType = 'income' | 'expense';
+export type TransactionType = 'income' | 'expense' | 'transfer';
 export type TransactionStatus = 'settled' | 'pending';
 
 export interface Transaction {
@@ -11,4 +11,6 @@ export interface Transaction {
   date: string;
   status: TransactionStatus;
   createdAt: string;
+  transferId?: string;
+  transferAccountId?: string;
 }

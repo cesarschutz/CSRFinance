@@ -16,7 +16,7 @@ import { Transaction, TransactionType, TransactionStatus } from '../../core/mode
 import { Category } from '../../core/models/category.model';
 import { Account } from '../../core/models/account.model';
 
-type FilterType = 'all' | 'expense' | 'income';
+type FilterType = 'all' | 'expense' | 'income' | 'transfer';
 
 @Component({
   selector: 'app-transactions',
@@ -45,10 +45,11 @@ export class TransactionsComponent implements OnInit {
   searchTerm = signal('');
   editingTransaction = signal<Transaction | null>(null);
   showModal = signal(false);
+  showTransferModal = signal(false);
   showDeleteConfirm = signal(false);
-  deletingTransactionId = signal<string | null>(null);
+  deletingTransaction = signal<Transaction | null>(null);
 
-  // Form
+  // Transaction Form
   transactionForm = new FormGroup({
     description: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     date: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -57,6 +58,15 @@ export class TransactionsComponent implements OnInit {
     categoryId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     accountId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     status: new FormControl<TransactionStatus>('settled', { nonNullable: true }),
+  });
+
+  // Transfer Form
+  transferForm = new FormGroup({
+    description: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    date: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    amount: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0.01)] }),
+    fromAccountId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    toAccountId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
   // Computed
@@ -88,15 +98,15 @@ export class TransactionsComponent implements OnInit {
 
     let filtered = all;
 
-    // Filter by type
     const type = this.filterType();
     if (type === 'income') {
       filtered = filtered.filter(t => t.type === 'income');
     } else if (type === 'expense') {
       filtered = filtered.filter(t => t.type === 'expense');
+    } else if (type === 'transfer') {
+      filtered = filtered.filter(t => t.type === 'transfer');
     }
 
-    // Filter by search term
     const term = this.searchTerm().toLowerCase().trim();
     if (term) {
       filtered = filtered.filter(t =>
@@ -104,7 +114,29 @@ export class TransactionsComponent implements OnInit {
       );
     }
 
-    // Sort by date descending
+    // Deduplicate transfers (show only outgoing, i.e. where accountId is the source)
+    if (type !== 'transfer') {
+      // In "all" view, show only one side of transfers
+      const seen = new Set<string>();
+      filtered = filtered.filter(t => {
+        if (t.transferId) {
+          if (seen.has(t.transferId)) return false;
+          seen.add(t.transferId);
+        }
+        return true;
+      });
+    } else {
+      // In transfer filter, deduplicate
+      const seen = new Set<string>();
+      filtered = filtered.filter(t => {
+        if (t.transferId) {
+          if (seen.has(t.transferId)) return false;
+          seen.add(t.transferId);
+        }
+        return true;
+      });
+    }
+
     return [...filtered].sort((a, b) => b.date.localeCompare(a.date));
   });
 
@@ -113,7 +145,7 @@ export class TransactionsComponent implements OnInit {
 
   filteredCategories = computed(() => {
     const type = this.transactionForm.controls.type.value;
-    return this.categoryService.getByType(type);
+    return this.categoryService.getByType(type === 'transfer' ? 'expense' : type);
   });
 
   modalTitle = computed(() => {
@@ -124,7 +156,6 @@ export class TransactionsComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Listen to type changes to reset categoryId when type switches
     this.transactionForm.controls.type.valueChanges.subscribe(() => {
       this.transactionForm.controls.categoryId.setValue('');
     });
@@ -145,6 +176,7 @@ export class TransactionsComponent implements OnInit {
   }
 
   getCategoryName(categoryId: string): string {
+    if (!categoryId) return '—';
     const cat = this.categoryService.getById(categoryId);
     return cat ? `${cat.icon} ${cat.name}` : '—';
   }
@@ -159,12 +191,18 @@ export class TransactionsComponent implements OnInit {
     return acc?.name ?? '—';
   }
 
+  getTransferLabel(txn: Transaction): string {
+    const from = this.getAccountName(txn.accountId);
+    const to = txn.transferAccountId ? this.getAccountName(txn.transferAccountId) : '—';
+    return `${from} → ${to}`;
+  }
+
   formatDate(dateStr: string): string {
     const [year, month, day] = dateStr.split('-');
     return `${day}/${month}/${year}`;
   }
 
-  // Modal actions
+  // Transaction modal
   openNewTransaction(type: TransactionType): void {
     this.editingTransaction.set(null);
     this.transactionForm.reset({
@@ -185,7 +223,7 @@ export class TransactionsComponent implements OnInit {
       description: transaction.description,
       date: transaction.date,
       amount: transaction.amount,
-      type: transaction.type,
+      type: transaction.type === 'transfer' ? 'expense' : transaction.type,
       categoryId: transaction.categoryId,
       accountId: transaction.accountId,
       status: transaction.status,
@@ -225,21 +263,65 @@ export class TransactionsComponent implements OnInit {
     this.closeModal();
   }
 
+  // Transfer modal
+  openTransferModal(): void {
+    const accs = this.accounts();
+    this.transferForm.reset({
+      description: '',
+      date: '',
+      amount: null,
+      fromAccountId: accs.length > 0 ? accs[0].id : '',
+      toAccountId: accs.length > 1 ? accs[1].id : '',
+    });
+    this.showTransferModal.set(true);
+  }
+
+  closeTransferModal(): void {
+    this.showTransferModal.set(false);
+  }
+
+  saveTransfer(): void {
+    if (this.transferForm.invalid) {
+      this.transferForm.markAllAsTouched();
+      return;
+    }
+
+    const v = this.transferForm.getRawValue();
+
+    if (v.fromAccountId === v.toAccountId) {
+      return;
+    }
+
+    this.transactionService.addTransfer({
+      fromAccountId: v.fromAccountId,
+      toAccountId: v.toAccountId,
+      amount: v.amount!,
+      date: v.date,
+      description: v.description || 'Transferência entre contas',
+    });
+
+    this.closeTransferModal();
+  }
+
   // Delete actions
-  confirmDelete(transactionId: string): void {
-    this.deletingTransactionId.set(transactionId);
+  confirmDelete(txn: Transaction): void {
+    this.deletingTransaction.set(txn);
     this.showDeleteConfirm.set(true);
   }
 
   cancelDelete(): void {
     this.showDeleteConfirm.set(false);
-    this.deletingTransactionId.set(null);
+    this.deletingTransaction.set(null);
   }
 
   executeDelete(): void {
-    const id = this.deletingTransactionId();
-    if (id) {
-      this.transactionService.delete(id);
+    const txn = this.deletingTransaction();
+    if (txn) {
+      if (txn.transferId) {
+        this.transactionService.deleteTransfer(txn.transferId);
+      } else {
+        this.transactionService.delete(txn.id);
+      }
     }
     this.cancelDelete();
   }

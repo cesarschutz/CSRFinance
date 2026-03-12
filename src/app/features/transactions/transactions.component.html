@@ -8,6 +8,9 @@
     <button class="btn-expense" (click)="openNewTransaction('expense')">
       + Nova Despesa
     </button>
+    <button class="btn-transfer" (click)="openTransferModal()">
+      🔄 Transferência
+    </button>
   </div>
 </div>
 
@@ -45,6 +48,13 @@
     >
       Receitas
     </button>
+    <button
+      class="filter-tab"
+      [class.active]="filterType() === 'transfer'"
+      (click)="setFilter('transfer')"
+    >
+      Transferências
+    </button>
   </div>
   <input
     type="text"
@@ -74,25 +84,50 @@
         @for (txn of transactions(); track txn.id) {
           <tr>
             <td>
-              <span class="status-badge" [class.settled]="txn.status === 'settled'" [class.pending]="txn.status === 'pending'">
-                {{ txn.status === 'settled' ? '✅' : '⏳' }}
-              </span>
+              @if (txn.type === 'transfer') {
+                <span class="status-badge transfer">🔄</span>
+              } @else {
+                <span class="status-badge" [class.settled]="txn.status === 'settled'" [class.pending]="txn.status === 'pending'">
+                  {{ txn.status === 'settled' ? '✅' : '⏳' }}
+                </span>
+              }
             </td>
             <td class="date-cell">{{ formatDate(txn.date) }}</td>
             <td class="description-cell">{{ txn.description }}</td>
-            <td class="category-cell">{{ getCategoryName(txn.categoryId) }}</td>
-            <td class="account-cell">{{ getAccountName(txn.accountId) }}</td>
+            <td class="category-cell">
+              @if (txn.type === 'transfer') {
+                <span class="transfer-label">{{ getTransferLabel(txn) }}</span>
+              } @else {
+                {{ getCategoryName(txn.categoryId) }}
+              }
+            </td>
+            <td class="account-cell">
+              @if (txn.type === 'transfer') {
+                —
+              } @else {
+                {{ getAccountName(txn.accountId) }}
+              }
+            </td>
             <td class="text-right">
-              <span class="amount money" [class.income]="txn.type === 'income'" [class.expense]="txn.type === 'expense'">
-                {{ txn.type === 'expense' ? '- ' : '+ ' }}{{ txn.amount | currencyBrl }}
+              <span
+                class="amount money"
+                [class.income]="txn.type === 'income'"
+                [class.expense]="txn.type === 'expense'"
+                [class.transfer]="txn.type === 'transfer'"
+              >
+                @if (txn.type === 'expense') { - }
+                @else if (txn.type === 'income') { + }
+                {{ txn.amount | currencyBrl }}
               </span>
             </td>
             <td class="text-center">
               <div class="actions">
-                <button class="btn-action btn-edit" (click)="openEditTransaction(txn)" aria-label="Editar transação">
-                  ✏️
-                </button>
-                <button class="btn-action btn-delete" (click)="confirmDelete(txn.id)" aria-label="Excluir transação">
+                @if (txn.type !== 'transfer') {
+                  <button class="btn-action btn-edit" (click)="openEditTransaction(txn)" aria-label="Editar transação">
+                    ✏️
+                  </button>
+                }
+                <button class="btn-action btn-delete" (click)="confirmDelete(txn)" aria-label="Excluir transação">
                   🗑️
                 </button>
               </div>
@@ -106,27 +141,50 @@
   <!-- Transactions Cards (Mobile) -->
   <div class="mobile-cards">
     @for (txn of transactions(); track txn.id) {
-      <div class="transaction-card" [class.income-card]="txn.type === 'income'" [class.expense-card]="txn.type === 'expense'">
+      <div
+        class="transaction-card"
+        [class.income-card]="txn.type === 'income'"
+        [class.expense-card]="txn.type === 'expense'"
+        [class.transfer-card]="txn.type === 'transfer'"
+      >
         <div class="card-top">
           <div class="card-left">
-            <span class="card-status">{{ txn.status === 'settled' ? '✅' : '⏳' }}</span>
+            <span class="card-status">
+              @if (txn.type === 'transfer') { 🔄 }
+              @else { {{ txn.status === 'settled' ? '✅' : '⏳' }} }
+            </span>
             <div class="card-info">
               <span class="card-description">{{ txn.description }}</span>
-              <span class="card-meta">{{ getCategoryName(txn.categoryId) }} · {{ getAccountName(txn.accountId) }}</span>
+              <span class="card-meta">
+                @if (txn.type === 'transfer') {
+                  {{ getTransferLabel(txn) }}
+                } @else {
+                  {{ getCategoryName(txn.categoryId) }} · {{ getAccountName(txn.accountId) }}
+                }
+              </span>
             </div>
           </div>
           <div class="card-right">
-            <span class="amount money" [class.income]="txn.type === 'income'" [class.expense]="txn.type === 'expense'">
-              {{ txn.type === 'expense' ? '- ' : '+ ' }}{{ txn.amount | currencyBrl }}
+            <span
+              class="amount money"
+              [class.income]="txn.type === 'income'"
+              [class.expense]="txn.type === 'expense'"
+              [class.transfer]="txn.type === 'transfer'"
+            >
+              @if (txn.type === 'expense') { - }
+              @else if (txn.type === 'income') { + }
+              {{ txn.amount | currencyBrl }}
             </span>
             <span class="card-date">{{ formatDate(txn.date) }}</span>
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn-action btn-edit" (click)="openEditTransaction(txn)" aria-label="Editar">
-            ✏️ Editar
-          </button>
-          <button class="btn-action btn-delete" (click)="confirmDelete(txn.id)" aria-label="Excluir">
+          @if (txn.type !== 'transfer') {
+            <button class="btn-action btn-edit" (click)="openEditTransaction(txn)" aria-label="Editar">
+              ✏️ Editar
+            </button>
+          }
+          <button class="btn-action btn-delete" (click)="confirmDelete(txn)" aria-label="Excluir">
             🗑️ Excluir
           </button>
         </div>
@@ -249,6 +307,102 @@
   </form>
 </app-modal>
 
+<!-- Transfer Form Modal -->
+<app-modal
+  [isOpen]="showTransferModal()"
+  title="Nova Transferência"
+  (close)="closeTransferModal()"
+>
+  <form [formGroup]="transferForm" (ngSubmit)="saveTransfer()">
+    <div class="form-group">
+      <label for="trf-description">Descrição</label>
+      <input
+        id="trf-description"
+        type="text"
+        formControlName="description"
+        class="form-control"
+        placeholder="Ex: Transferência entre contas"
+      />
+      @if (transferForm.controls.description.touched && transferForm.controls.description.hasError('required')) {
+        <span class="form-error">Descrição é obrigatória</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="trf-from">Conta Origem</label>
+        <select id="trf-from" formControlName="fromAccountId" class="form-control">
+          <option value="" disabled>Selecione...</option>
+          @for (acc of accounts(); track acc.id) {
+            <option [value]="acc.id">{{ acc.name }}</option>
+          }
+        </select>
+        @if (transferForm.controls.fromAccountId.touched && transferForm.controls.fromAccountId.hasError('required')) {
+          <span class="form-error">Conta origem é obrigatória</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="trf-to">Conta Destino</label>
+        <select id="trf-to" formControlName="toAccountId" class="form-control">
+          <option value="" disabled>Selecione...</option>
+          @for (acc of accounts(); track acc.id) {
+            <option [value]="acc.id">{{ acc.name }}</option>
+          }
+        </select>
+        @if (transferForm.controls.toAccountId.touched && transferForm.controls.toAccountId.hasError('required')) {
+          <span class="form-error">Conta destino é obrigatória</span>
+        }
+      </div>
+    </div>
+
+    @if (transferForm.controls.fromAccountId.value && transferForm.controls.toAccountId.value && transferForm.controls.fromAccountId.value === transferForm.controls.toAccountId.value) {
+      <div class="form-warning">As contas de origem e destino devem ser diferentes.</div>
+    }
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="trf-date">Data</label>
+        <input
+          id="trf-date"
+          type="date"
+          formControlName="date"
+          class="form-control"
+        />
+        @if (transferForm.controls.date.touched && transferForm.controls.date.hasError('required')) {
+          <span class="form-error">Data é obrigatória</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="trf-amount">Valor</label>
+        <input
+          id="trf-amount"
+          type="number"
+          formControlName="amount"
+          class="form-control"
+          placeholder="0,00"
+          step="0.01"
+          min="0.01"
+        />
+        @if (transferForm.controls.amount.touched && transferForm.controls.amount.hasError('required')) {
+          <span class="form-error">Valor é obrigatório</span>
+        }
+        @if (transferForm.controls.amount.touched && transferForm.controls.amount.hasError('min')) {
+          <span class="form-error">Valor mínimo é R$ 0,01</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="closeTransferModal()">Cancelar</button>
+      <button type="submit" class="btn-save" [disabled]="transferForm.invalid">
+        Transferir
+      </button>
+    </div>
+  </form>
+</app-modal>
+
 <!-- Delete Confirmation Modal -->
 <app-modal
   [isOpen]="showDeleteConfirm()"
@@ -256,8 +410,13 @@
   (close)="cancelDelete()"
 >
   <div class="delete-confirm">
-    <p>Tem certeza que deseja excluir esta transação?</p>
-    <p class="delete-warning">Esta ação não pode ser desfeita.</p>
+    @if (deletingTransaction()?.transferId) {
+      <p>Tem certeza que deseja excluir esta transferência?</p>
+      <p class="delete-warning">Ambos os lados da transferência serão removidos. Esta ação não pode ser desfeita.</p>
+    } @else {
+      <p>Tem certeza que deseja excluir esta transação?</p>
+      <p class="delete-warning">Esta ação não pode ser desfeita.</p>
+    }
     <div class="form-actions">
       <button type="button" class="btn-cancel" (click)="cancelDelete()">Cancelar</button>
       <button type="button" class="btn-danger" (click)="executeDelete()">Excluir</button>

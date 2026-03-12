@@ -35,7 +35,8 @@
 }
 
 .btn-income,
-.btn-expense {
+.btn-expense,
+.btn-transfer {
   padding: 10px 20px;
   border-radius: var(--radius-sm);
   font-weight: 600;
@@ -64,6 +65,16 @@
 
   &:hover {
     background: #d63384;
+    transform: translateY(-1px);
+  }
+}
+
+.btn-transfer {
+  background: #0984E3;
+  color: #fff;
+
+  &:hover {
+    background: #0773c5;
     transform: translateY(-1px);
   }
 }
@@ -250,6 +261,10 @@
   &.pending {
     background: var(--warning-bg);
   }
+
+  &.transfer {
+    background: rgba(9, 132, 227, 0.1);
+  }
 }
 
 .date-cell {
@@ -284,6 +299,16 @@
   &.expense {
     color: var(--expense);
   }
+
+  &.transfer {
+    color: #0984E3;
+  }
+}
+
+.transfer-label {
+  color: #0984E3;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .actions {
@@ -344,6 +369,10 @@
 
   &.expense-card {
     border-left: 3px solid var(--expense);
+  }
+
+  &.transfer-card {
+    border-left: 3px solid #0984E3;
   }
 }
 
@@ -492,6 +521,16 @@ select.form-control {
   font-size: 0.75rem;
   color: var(--danger);
   font-weight: 500;
+}
+
+.form-warning {
+  font-size: 0.8125rem;
+  color: #e17055;
+  font-weight: 500;
+  padding: 8px 12px;
+  background: rgba(225, 112, 85, 0.1);
+  border-radius: var(--radius-xs);
+  margin-bottom: 16px;
 }
 
 .form-actions {

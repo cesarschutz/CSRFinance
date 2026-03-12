@@ -1,7 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Category, CategoryType } from '../models/category.model';
 import { StorageService } from './storage.service';
-import { SEED_CATEGORIES } from '../seed-data';
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
@@ -22,16 +21,16 @@ export class CategoryService {
 
   private load(): void {
     const stored = this.storage.get<Category[]>(this.STORAGE_KEY);
-    if (stored && stored.length > 0) {
-      this.categoriesSignal.set(stored);
-    } else {
-      this.categoriesSignal.set(SEED_CATEGORIES);
-      this.save();
-    }
+    this.categoriesSignal.set(stored ?? []);
   }
 
   private save(): void {
     this.storage.set(this.STORAGE_KEY, this.categoriesSignal());
+  }
+
+  loadFromData(categories: Category[]): void {
+    this.categoriesSignal.set(categories);
+    this.save();
   }
 
   getById(id: string): Category | undefined {
