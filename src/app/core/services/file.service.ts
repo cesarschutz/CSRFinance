@@ -270,17 +270,11 @@ export class FileService implements OnDestroy {
     const required = [this.SHEET_CONTAS, this.SHEET_CATEGORIAS, this.SHEET_TRANSACOES];
     const missing = required.filter(s => !sheetNames.includes(s));
 
-    if (missing.length === required.length) {
-      throw new Error(
-        `Arquivo inválido. Planilhas esperadas: "${required.join('", "')}". ` +
-        `Encontradas: "${sheetNames.join('", "')}".`
-      );
-    }
-
     if (missing.length > 0) {
       throw new Error(
         `Planilhas não encontradas: "${missing.join('", "')}". ` +
-        `O arquivo deve conter: "${required.join('", "')}".`
+        `O arquivo deve conter: "${required.join('", "')}". ` +
+        `Encontradas: "${sheetNames.join('", "')}".`
       );
     }
 

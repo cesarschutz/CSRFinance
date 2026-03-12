@@ -106,6 +106,7 @@ src/app/
 - **Filtro por conta:** `accountService.selectedAccountId()` filtra dados globalmente
 
 ## Histórico de Mudanças
+- **v0.3.2** - Fix: cálculo de saldos em transferências (deduplicação por transferId), validação de workbook simplificada
 - **v0.3.1** - Fix: reatividade dos saldos (computed signals), app inicia vazio (sem seed data), validação de formato ao abrir .xlsx com mensagens de erro claras
 - **v0.3.0** - Persistência em arquivo Excel (.xlsx): FileService com SheetJS, FileBarComponent, auto-save via File System Access API, 3 planilhas (Contas, Categorias, Transações), fallback para download
 - **v0.2.0** - Transferências entre contas: novo tipo `transfer` no model, transações pareadas com `transferId`, modal de transferência, filtro por transferências, exclusão automática do par, transferências excluídas dos resumos de receita/despesa

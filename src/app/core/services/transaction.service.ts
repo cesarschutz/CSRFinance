@@ -17,15 +17,31 @@ export class TransactionService {
     const balances = new Map<string, number>();
 
     for (const acc of accounts) {
-      const accTxns = txns.filter(t => t.accountId === acc.id);
-      const balance = accTxns.reduce((sum, t) => {
-        if (t.type === 'transfer') {
-          return t.transferAccountId === acc.id ? sum + t.amount : sum - t.amount;
-        }
-        return t.type === 'income' ? sum + t.amount : sum - t.amount;
-      }, acc.initialBalance);
-      balances.set(acc.id, balance);
+      balances.set(acc.id, acc.initialBalance);
     }
+
+    const processedTransfers = new Set<string>();
+
+    for (const t of txns) {
+      if (!balances.has(t.accountId)) continue;
+
+      if (t.type === 'transfer') {
+        // Each transfer pair: process once. The first encountered tx is always
+        // the outgoing side (accountId = source, transferAccountId = dest).
+        if (t.transferId && !processedTransfers.has(t.transferId)) {
+          processedTransfers.add(t.transferId);
+          balances.set(t.accountId, balances.get(t.accountId)! - t.amount);
+          if (t.transferAccountId && balances.has(t.transferAccountId)) {
+            balances.set(t.transferAccountId, balances.get(t.transferAccountId)! + t.amount);
+          }
+        }
+      } else if (t.type === 'income') {
+        balances.set(t.accountId, balances.get(t.accountId)! + t.amount);
+      } else {
+        balances.set(t.accountId, balances.get(t.accountId)! - t.amount);
+      }
+    }
+
     return balances;
   });
 
