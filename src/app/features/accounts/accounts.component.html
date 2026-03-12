@@ -1,0 +1,128 @@
+<div class="accounts-page">
+  <!-- Header -->
+  <div class="page-header">
+    <h2>Contas</h2>
+  </div>
+
+  <!-- Accounts Grid -->
+  <div class="accounts-grid">
+    @for (account of accounts(); track account.id) {
+      <div
+        class="account-card"
+        [style.background]="getGradient(account.color)">
+        <div class="card-header">
+          <span class="bank-name">{{ account.bank }}</span>
+          <div class="card-actions">
+            <button
+              class="action-btn"
+              (click)="openEditModal(account)"
+              aria-label="Editar conta">
+              ✏
+            </button>
+            <button
+              class="action-btn"
+              (click)="deleteAccount(account); $event.stopPropagation()"
+              aria-label="Excluir conta">
+              ✕
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <span class="account-name">{{ account.name }}</span>
+          <span class="account-balance">{{ getBalance(account.id) | currencyBrl }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- New Account Card -->
+    <div class="new-account-card" (click)="openNewModal()">
+      <span class="new-icon">+</span>
+      <span class="new-label">Nova Conta</span>
+    </div>
+  </div>
+
+  @if (accounts().length === 0) {
+    <app-empty-state
+      icon="🏦"
+      title="Nenhuma conta cadastrada"
+      message="Adicione uma conta para começar a controlar suas finanças.">
+    </app-empty-state>
+  }
+</div>
+
+<!-- Modal -->
+<app-modal
+  [isOpen]="showModal()"
+  [title]="editingAccount() ? 'Editar Conta' : 'Nova Conta'"
+  (close)="closeModal()">
+
+  <form [formGroup]="form" (ngSubmit)="saveAccount()" class="account-form">
+    <!-- Name -->
+    <div class="form-group">
+      <label for="accountName">Nome da conta</label>
+      <input
+        id="accountName"
+        type="text"
+        formControlName="name"
+        placeholder="Ex: Conta corrente"
+        class="form-input" />
+    </div>
+
+    <!-- Bank -->
+    <div class="form-group">
+      <label for="accountBank">Banco</label>
+      <input
+        id="accountBank"
+        type="text"
+        formControlName="bank"
+        placeholder="Ex: Nubank"
+        class="form-input" />
+    </div>
+
+    <!-- Initial Balance -->
+    <div class="form-group">
+      <label for="accountBalance">Saldo inicial</label>
+      <input
+        id="accountBalance"
+        type="number"
+        formControlName="initialBalance"
+        placeholder="0,00"
+        step="0.01"
+        class="form-input" />
+    </div>
+
+    <!-- Color Picker -->
+    <div class="form-group">
+      <label>Cor do cartão</label>
+      <div class="color-grid">
+        @for (color of presetColors; track color) {
+          <button
+            type="button"
+            class="color-option"
+            [style.background-color]="color"
+            [class.active]="selectedColor() === color"
+            (click)="selectColor(color)">
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="form-group">
+      <label>Pré-visualização</label>
+      <div class="card-preview" [style.background]="getGradient(selectedColor())">
+        <span class="preview-bank">{{ form.get('bank')?.value || 'Banco' }}</span>
+        <span class="preview-name">{{ form.get('name')?.value || 'Nome da conta' }}</span>
+        <span class="preview-balance">{{ (form.get('initialBalance')?.value || 0) | currencyBrl }}</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="closeModal()">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="form.invalid">
+        {{ editingAccount() ? 'Salvar' : 'Criar' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

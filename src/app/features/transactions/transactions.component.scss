@@ -1,0 +1,590 @@
+@import 'assets/styles/mixins';
+
+// =============================
+// Page Header
+// =============================
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  h1 {
+    @include heading(1.5rem, 700);
+  }
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+
+  @include mobile-only {
+    width: 100%;
+
+    button {
+      flex: 1;
+    }
+  }
+}
+
+.btn-income,
+.btn-expense {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  white-space: nowrap;
+
+  @include focus-ring;
+}
+
+.btn-income {
+  background: var(--income);
+  color: #fff;
+
+  &:hover {
+    background: #00a884;
+    transform: translateY(-1px);
+  }
+}
+
+.btn-expense {
+  background: var(--expense);
+  color: #fff;
+
+  &:hover {
+    background: #d63384;
+    transform: translateY(-1px);
+  }
+}
+
+// =============================
+// Summary Section
+// =============================
+
+.summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  @include tablet {
+    gap: 20px;
+  }
+}
+
+// =============================
+// Filters
+// =============================
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-tab {
+  padding: 8px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: all 0.2s ease;
+  position: relative;
+
+  @include focus-ring;
+
+  &:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+  }
+
+  &.active {
+    color: var(--accent);
+    background: var(--accent-bg);
+    font-weight: 600;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+  }
+}
+
+.search-input {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.875rem;
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+
+  @include focus-ring;
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  &:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+    outline: none;
+  }
+
+  @include tablet {
+    width: 280px;
+  }
+}
+
+// =============================
+// Transactions Table (Desktop)
+// =============================
+
+.table-container {
+  display: none;
+
+  @include tablet {
+    display: block;
+    @include card;
+    overflow-x: auto;
+  }
+}
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 14px 16px;
+    font-size: 0.875rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tbody tr {
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: var(--surface-hover);
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+
+  &.settled {
+    background: var(--income-bg);
+  }
+
+  &.pending {
+    background: var(--warning-bg);
+  }
+}
+
+.date-cell {
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.description-cell {
+  font-weight: 500;
+  max-width: 240px;
+  @include truncate;
+}
+
+.category-cell {
+  white-space: nowrap;
+}
+
+.account-cell {
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.amount {
+  @include money-value(0.9rem);
+  white-space: nowrap;
+
+  &.income {
+    color: var(--income);
+  }
+
+  &.expense {
+    color: var(--expense);
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.btn-action {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  transition: background 0.15s ease;
+
+  @include focus-ring;
+
+  &.btn-edit:hover {
+    background: var(--accent-bg);
+  }
+
+  &.btn-delete:hover {
+    background: var(--danger-bg);
+  }
+}
+
+// =============================
+// Mobile Cards
+// =============================
+
+.mobile-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  @include tablet {
+    display: none;
+  }
+}
+
+.transaction-card {
+  @include card;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &.income-card {
+    border-left: 3px solid var(--income);
+  }
+
+  &.expense-card {
+    border-left: 3px solid var(--expense);
+  }
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.card-status {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.card-description {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text);
+  @include truncate;
+}
+
+.card-meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  @include truncate;
+}
+
+.card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.card-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+
+  .btn-action {
+    width: auto;
+    height: auto;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    gap: 4px;
+    color: var(--text-secondary);
+
+    &.btn-edit:hover {
+      color: var(--accent);
+    }
+
+    &.btn-delete:hover {
+      color: var(--danger);
+    }
+  }
+}
+
+// =============================
+// Form Styles (Modal)
+// =============================
+
+.form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+}
+
+.form-control {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.875rem;
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+
+  &:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+    outline: none;
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+select.form-control {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7194' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  @include tablet {
+    flex-direction: row;
+    gap: 16px;
+
+    .form-group {
+      flex: 1;
+    }
+  }
+}
+
+.form-error {
+  font-size: 0.75rem;
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.btn-cancel {
+  padding: 10px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  @include focus-ring;
+
+  &:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+}
+
+.btn-save {
+  padding: 10px 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  @include focus-ring;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-danger {
+  padding: 10px 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--danger);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  @include focus-ring;
+
+  &:hover {
+    background: darken(#FF6B6B, 10%);
+    transform: translateY(-1px);
+  }
+}
+
+// =============================
+// Delete Confirmation
+// =============================
+
+.delete-confirm {
+  text-align: center;
+
+  p {
+    font-size: 0.9375rem;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .delete-warning {
+    font-size: 0.8125rem;
+    color: var(--danger);
+    font-weight: 500;
+    margin-bottom: 0;
+  }
+
+  .form-actions {
+    justify-content: center;
+    margin-top: 20px;
+  }
+}

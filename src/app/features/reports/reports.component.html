@@ -1,0 +1,177 @@
+<div class="reports-page">
+  <!-- Header -->
+  <header class="page-header">
+    <h1>Relat&oacute;rios</h1>
+    <app-month-picker
+      [year]="year()"
+      [month]="month()"
+      (monthChange)="onMonthChange($event)"
+    />
+  </header>
+
+  <!-- Tab Navigation -->
+  <nav class="tabs">
+    <button
+      class="tab-btn"
+      [class.active]="activeTab() === 'category'"
+      (click)="setTab('category')"
+    >
+      Por Categoria
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="activeTab() === 'daily'"
+      (click)="setTab('daily')"
+    >
+      Despesas Di&aacute;rias
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="activeTab() === 'balance'"
+      (click)="setTab('balance')"
+    >
+      Balan&ccedil;o Mensal
+    </button>
+  </nav>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    @switch (activeTab()) {
+
+      <!-- ======================== -->
+      <!-- Tab 1 - Por Categoria    -->
+      <!-- ======================== -->
+      @case ('category') {
+        @if (categoryData().length > 0) {
+          <section class="report-section">
+            <div class="chart-card">
+              <app-donut-chart
+                [segments]="donutSegments()"
+                centerLabel="Total"
+                [showLegend]="false"
+              />
+            </div>
+
+            <div class="category-list">
+              @for (item of categoryData(); track item.id) {
+                <div class="category-item">
+                  <span class="category-icon">{{ item.icon }}</span>
+                  <div class="category-info">
+                    <div class="category-header">
+                      <span class="category-name">{{ item.name }}</span>
+                      <span class="category-value money">{{ item.value | currencyBrl }}</span>
+                    </div>
+                    <div class="category-bar-wrapper">
+                      <div
+                        class="category-bar"
+                        [style.width.%]="item.percentage"
+                        [style.background]="item.color"
+                      ></div>
+                    </div>
+                    <span class="category-percentage">{{ item.percentage | number:'1.1-1' }}%</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        } @else {
+          <app-empty-state
+            icon="📊"
+            title="Nenhuma despesa encontrada"
+            message="N&atilde;o h&aacute; despesas registradas neste m&ecirc;s para exibir no relat&oacute;rio."
+          />
+        }
+      }
+
+      <!-- ======================== -->
+      <!-- Tab 2 - Despesas Diarias -->
+      <!-- ======================== -->
+      @case ('daily') {
+        @if (dailyExpenses().length > 0) {
+          <section class="report-section">
+            <div class="chart-card">
+              <div class="chart-container chart-container--line">
+                <canvas baseChart
+                  [type]="'line'"
+                  [data]="dailyChartData()"
+                  [options]="dailyChartOptions">
+                </canvas>
+              </div>
+            </div>
+
+            <div class="daily-summary">
+              <span class="daily-summary-label">Total do m&ecirc;s</span>
+              <span class="daily-summary-value money expense">{{ totalDailyExpenses() | currencyBrl }}</span>
+            </div>
+
+            <div class="daily-list">
+              @for (day of dailyExpenses(); track day.date) {
+                <div class="daily-item">
+                  <span class="daily-date">{{ day.formattedDate }}</span>
+                  <span class="daily-value money expense">{{ day.value | currencyBrl }}</span>
+                </div>
+              }
+            </div>
+          </section>
+        } @else {
+          <app-empty-state
+            icon="📅"
+            title="Sem despesas di&aacute;rias"
+            message="Nenhuma despesa registrada neste m&ecirc;s."
+          />
+        }
+      }
+
+      <!-- ========================== -->
+      <!-- Tab 3 - Balanco Mensal     -->
+      <!-- ========================== -->
+      @case ('balance') {
+        @if (hasMonthlyData()) {
+          <section class="report-section">
+            <div class="chart-card">
+              <div class="chart-container chart-container--bar">
+                <canvas baseChart
+                  [type]="'bar'"
+                  [data]="barChartData()"
+                  [options]="barChartOptions">
+                </canvas>
+              </div>
+            </div>
+
+            <div class="monthly-detail">
+              @for (item of monthlyBalances(); track item.label) {
+                <div class="monthly-card">
+                  <span class="monthly-label">{{ item.label }}</span>
+                  <div class="monthly-row">
+                    <span class="monthly-row-label income-label">Receitas</span>
+                    <span class="monthly-row-value money income">{{ item.income | currencyBrl }}</span>
+                  </div>
+                  <div class="monthly-row">
+                    <span class="monthly-row-label expense-label">Despesas</span>
+                    <span class="monthly-row-value money expense">{{ item.expense | currencyBrl }}</span>
+                  </div>
+                  <div class="monthly-row monthly-row--balance">
+                    <span class="monthly-row-label">Balan&ccedil;o</span>
+                    <span
+                      class="monthly-row-value money"
+                      [class.income]="item.balance >= 0"
+                      [class.expense]="item.balance < 0"
+                    >
+                      {{ item.balance | currencyBrl }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        } @else {
+          <app-empty-state
+            icon="📈"
+            title="Sem dados de balan&ccedil;o"
+            message="N&atilde;o h&aacute; transa&ccedil;&otilde;es nos &uacute;ltimos 6 meses."
+          />
+        }
+      }
+    }
+  </div>
+</div>

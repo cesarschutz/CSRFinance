@@ -1,0 +1,266 @@
+<!-- Page Header -->
+<div class="page-header">
+  <h1>Transações</h1>
+  <div class="action-buttons">
+    <button class="btn-income" (click)="openNewTransaction('income')">
+      + Nova Receita
+    </button>
+    <button class="btn-expense" (click)="openNewTransaction('expense')">
+      + Nova Despesa
+    </button>
+  </div>
+</div>
+
+<!-- Month Picker + Summary Cards -->
+<div class="summary-section">
+  <app-month-picker
+    [year]="year()"
+    [month]="month()"
+    (monthChange)="onMonthChange($event)"
+  />
+  <app-summary-cards [cards]="summaryCards()" />
+</div>
+
+<!-- Filters -->
+<div class="filters">
+  <div class="filter-tabs">
+    <button
+      class="filter-tab"
+      [class.active]="filterType() === 'all'"
+      (click)="setFilter('all')"
+    >
+      Todas
+    </button>
+    <button
+      class="filter-tab"
+      [class.active]="filterType() === 'expense'"
+      (click)="setFilter('expense')"
+    >
+      Despesas
+    </button>
+    <button
+      class="filter-tab"
+      [class.active]="filterType() === 'income'"
+      (click)="setFilter('income')"
+    >
+      Receitas
+    </button>
+  </div>
+  <input
+    type="text"
+    class="search-input"
+    placeholder="Buscar por descrição..."
+    [value]="searchTerm()"
+    (input)="onSearchChange($event)"
+  />
+</div>
+
+<!-- Transactions Table (Desktop) -->
+@if (transactions().length > 0) {
+  <div class="table-container">
+    <table class="transactions-table">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Data</th>
+          <th>Descrição</th>
+          <th>Categoria</th>
+          <th>Conta</th>
+          <th class="text-right">Valor</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (txn of transactions(); track txn.id) {
+          <tr>
+            <td>
+              <span class="status-badge" [class.settled]="txn.status === 'settled'" [class.pending]="txn.status === 'pending'">
+                {{ txn.status === 'settled' ? '✅' : '⏳' }}
+              </span>
+            </td>
+            <td class="date-cell">{{ formatDate(txn.date) }}</td>
+            <td class="description-cell">{{ txn.description }}</td>
+            <td class="category-cell">{{ getCategoryName(txn.categoryId) }}</td>
+            <td class="account-cell">{{ getAccountName(txn.accountId) }}</td>
+            <td class="text-right">
+              <span class="amount money" [class.income]="txn.type === 'income'" [class.expense]="txn.type === 'expense'">
+                {{ txn.type === 'expense' ? '- ' : '+ ' }}{{ txn.amount | currencyBrl }}
+              </span>
+            </td>
+            <td class="text-center">
+              <div class="actions">
+                <button class="btn-action btn-edit" (click)="openEditTransaction(txn)" aria-label="Editar transação">
+                  ✏️
+                </button>
+                <button class="btn-action btn-delete" (click)="confirmDelete(txn.id)" aria-label="Excluir transação">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Transactions Cards (Mobile) -->
+  <div class="mobile-cards">
+    @for (txn of transactions(); track txn.id) {
+      <div class="transaction-card" [class.income-card]="txn.type === 'income'" [class.expense-card]="txn.type === 'expense'">
+        <div class="card-top">
+          <div class="card-left">
+            <span class="card-status">{{ txn.status === 'settled' ? '✅' : '⏳' }}</span>
+            <div class="card-info">
+              <span class="card-description">{{ txn.description }}</span>
+              <span class="card-meta">{{ getCategoryName(txn.categoryId) }} · {{ getAccountName(txn.accountId) }}</span>
+            </div>
+          </div>
+          <div class="card-right">
+            <span class="amount money" [class.income]="txn.type === 'income'" [class.expense]="txn.type === 'expense'">
+              {{ txn.type === 'expense' ? '- ' : '+ ' }}{{ txn.amount | currencyBrl }}
+            </span>
+            <span class="card-date">{{ formatDate(txn.date) }}</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-action btn-edit" (click)="openEditTransaction(txn)" aria-label="Editar">
+            ✏️ Editar
+          </button>
+          <button class="btn-action btn-delete" (click)="confirmDelete(txn.id)" aria-label="Excluir">
+            🗑️ Excluir
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <app-empty-state
+    icon="📋"
+    title="Nenhuma transação encontrada"
+    message="Não há transações para o período selecionado. Adicione uma nova receita ou despesa."
+  />
+}
+
+<!-- Transaction Form Modal -->
+<app-modal
+  [isOpen]="showModal()"
+  [title]="modalTitle()"
+  (close)="closeModal()"
+>
+  <form [formGroup]="transactionForm" (ngSubmit)="saveTransaction()">
+    <div class="form-group">
+      <label for="txn-type">Tipo</label>
+      <select id="txn-type" formControlName="type" class="form-control">
+        <option value="income">Receita</option>
+        <option value="expense">Despesa</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="txn-description">Descrição</label>
+      <input
+        id="txn-description"
+        type="text"
+        formControlName="description"
+        class="form-control"
+        placeholder="Ex: Supermercado, Salário..."
+      />
+      @if (transactionForm.controls.description.touched && transactionForm.controls.description.hasError('required')) {
+        <span class="form-error">Descrição é obrigatória</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="txn-date">Data</label>
+        <input
+          id="txn-date"
+          type="date"
+          formControlName="date"
+          class="form-control"
+        />
+        @if (transactionForm.controls.date.touched && transactionForm.controls.date.hasError('required')) {
+          <span class="form-error">Data é obrigatória</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="txn-amount">Valor</label>
+        <input
+          id="txn-amount"
+          type="number"
+          formControlName="amount"
+          class="form-control"
+          placeholder="0,00"
+          step="0.01"
+          min="0.01"
+        />
+        @if (transactionForm.controls.amount.touched && transactionForm.controls.amount.hasError('required')) {
+          <span class="form-error">Valor é obrigatório</span>
+        }
+        @if (transactionForm.controls.amount.touched && transactionForm.controls.amount.hasError('min')) {
+          <span class="form-error">Valor mínimo é R$ 0,01</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="txn-category">Categoria</label>
+        <select id="txn-category" formControlName="categoryId" class="form-control">
+          <option value="" disabled>Selecione...</option>
+          @for (cat of filteredCategories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.icon }} {{ cat.name }}</option>
+          }
+        </select>
+        @if (transactionForm.controls.categoryId.touched && transactionForm.controls.categoryId.hasError('required')) {
+          <span class="form-error">Categoria é obrigatória</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="txn-account">Conta</label>
+        <select id="txn-account" formControlName="accountId" class="form-control">
+          <option value="" disabled>Selecione...</option>
+          @for (acc of accounts(); track acc.id) {
+            <option [value]="acc.id">{{ acc.name }}</option>
+          }
+        </select>
+        @if (transactionForm.controls.accountId.touched && transactionForm.controls.accountId.hasError('required')) {
+          <span class="form-error">Conta é obrigatória</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="txn-status">Status</label>
+      <select id="txn-status" formControlName="status" class="form-control">
+        <option value="settled">Efetivada</option>
+        <option value="pending">Pendente</option>
+      </select>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+      <button type="submit" class="btn-save" [disabled]="transactionForm.invalid">
+        {{ editingTransaction() ? 'Salvar Alterações' : 'Adicionar' }}
+      </button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- Delete Confirmation Modal -->
+<app-modal
+  [isOpen]="showDeleteConfirm()"
+  title="Confirmar Exclusão"
+  (close)="cancelDelete()"
+>
+  <div class="delete-confirm">
+    <p>Tem certeza que deseja excluir esta transação?</p>
+    <p class="delete-warning">Esta ação não pode ser desfeita.</p>
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="cancelDelete()">Cancelar</button>
+      <button type="button" class="btn-danger" (click)="executeDelete()">Excluir</button>
+    </div>
+  </div>
+</app-modal>

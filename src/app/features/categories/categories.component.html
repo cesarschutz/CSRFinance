@@ -1,0 +1,132 @@
+<div class="categories-page">
+  <!-- Header -->
+  <div class="page-header">
+    <h2>Categorias</h2>
+    <button class="btn-primary" (click)="openNewModal()">
+      + Nova Categoria
+    </button>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-tabs">
+    @for (tab of filterTabs; track tab.value) {
+      <button
+        class="filter-tab"
+        [class.active]="filterType() === tab.value"
+        (click)="setFilter(tab.value)">
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Categories Grid -->
+  @if (filteredCategories().length > 0) {
+    <div class="categories-grid">
+      @for (category of filteredCategories(); track category.id) {
+        <div class="category-card" (click)="openEditModal(category)">
+          <div class="category-icon" [style.background-color]="category.color + '20'">
+            {{ category.icon }}
+          </div>
+          <span class="category-name">{{ category.name }}</span>
+          <span
+            class="type-badge"
+            [class.badge-expense]="category.type === 'expense'"
+            [class.badge-income]="category.type === 'income'">
+            {{ category.type === 'expense' ? 'Despesa' : 'Receita' }}
+          </span>
+          <button
+            class="btn-delete"
+            (click)="deleteCategory(category); $event.stopPropagation()"
+            aria-label="Excluir categoria">
+            &times;
+          </button>
+        </div>
+      }
+    </div>
+  } @else {
+    <app-empty-state
+      icon="🏷️"
+      title="Nenhuma categoria encontrada"
+      message="Crie uma nova categoria para organizar suas finanças.">
+    </app-empty-state>
+  }
+</div>
+
+<!-- Modal -->
+<app-modal
+  [isOpen]="showModal()"
+  [title]="editingCategory() ? 'Editar Categoria' : 'Nova Categoria'"
+  (close)="closeModal()">
+
+  <form [formGroup]="form" (ngSubmit)="saveCategory()" class="category-form">
+    <!-- Name -->
+    <div class="form-group">
+      <label for="categoryName">Nome</label>
+      <input
+        id="categoryName"
+        type="text"
+        formControlName="name"
+        placeholder="Ex: Alimentação"
+        class="form-input" />
+    </div>
+
+    <!-- Type Toggle -->
+    <div class="form-group">
+      <label>Tipo</label>
+      <div class="type-toggle" (click)="toggleType()">
+        <span
+          class="toggle-option"
+          [class.active]="form.get('type')?.value === 'expense'"
+          [class.option-expense]="form.get('type')?.value === 'expense'">
+          Despesa
+        </span>
+        <span
+          class="toggle-option"
+          [class.active]="form.get('type')?.value === 'income'"
+          [class.option-income]="form.get('type')?.value === 'income'">
+          Receita
+        </span>
+      </div>
+    </div>
+
+    <!-- Emoji Picker -->
+    <div class="form-group">
+      <label>Icone</label>
+      <div class="emoji-grid">
+        @for (emoji of availableEmojis; track emoji) {
+          <button
+            type="button"
+            class="emoji-option"
+            [class.active]="selectedEmoji() === emoji"
+            (click)="selectEmoji(emoji)">
+            {{ emoji }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Color Picker -->
+    <div class="form-group">
+      <label>Cor</label>
+      <div class="color-grid">
+        @for (color of presetColors; track color) {
+          <button
+            type="button"
+            class="color-option"
+            [style.background-color]="color"
+            [class.active]="selectedColor() === color"
+            (click)="selectColor(color)">
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="closeModal()">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="form.invalid">
+        {{ editingCategory() ? 'Salvar' : 'Criar' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

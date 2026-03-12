@@ -1,0 +1,83 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-month-picker',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="month-picker">
+      <button class="month-nav" (click)="prev()" aria-label="Mês anterior">
+        ‹
+      </button>
+      <span class="month-label">{{ monthLabel }}</span>
+      <button class="month-nav" (click)="next()" aria-label="Próximo mês">
+        ›
+      </button>
+    </div>
+  `,
+  styles: [`
+    .month-picker {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .month-nav {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      background: var(--surface);
+      border: 1px solid var(--border);
+
+      &:hover {
+        background: var(--accent-bg);
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+    }
+
+    .month-label {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+      min-width: 140px;
+      text-align: center;
+      text-transform: capitalize;
+    }
+  `],
+})
+export class MonthPickerComponent {
+  @Input() year = new Date().getFullYear();
+  @Input() month = new Date().getMonth();
+  @Output() monthChange = new EventEmitter<{ year: number; month: number }>();
+
+  get monthLabel(): string {
+    const date = new Date(this.year, this.month);
+    return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  }
+
+  prev(): void {
+    let m = this.month - 1;
+    let y = this.year;
+    if (m < 0) { m = 11; y--; }
+    this.month = m;
+    this.year = y;
+    this.monthChange.emit({ year: y, month: m });
+  }
+
+  next(): void {
+    let m = this.month + 1;
+    let y = this.year;
+    if (m > 11) { m = 0; y++; }
+    this.month = m;
+    this.year = y;
+    this.monthChange.emit({ year: y, month: m });
+  }
+}

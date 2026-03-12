@@ -1,0 +1,60 @@
+// ======================
+// FinControl Design Tokens
+// ======================
+
+// Colors
+:root {
+  --bg: #F0F2F8;
+  --surface: #FFFFFF;
+  --surface-hover: #F8F9FC;
+  --text: #1A1D2E;
+  --text-secondary: #6B7194;
+  --text-muted: #A0A5C0;
+  --accent: #6C5CE7;
+  --accent-hover: #5A4BD6;
+  --accent-bg: #EDE9FF;
+  --income: #00B894;
+  --income-bg: #E6F9F3;
+  --expense: #E84393;
+  --expense-bg: #FDE8F2;
+  --border: #E8EAF2;
+  --danger: #FF6B6B;
+  --danger-bg: #FFE0E0;
+  --warning: #FDCB6E;
+  --warning-bg: #FFF8E1;
+
+  // Sidebar
+  --sidebar-bg: #1A1D2E;
+  --sidebar-bg-end: #2D3154;
+  --sidebar-text: #A0A5C0;
+  --sidebar-text-active: #FFFFFF;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-active: rgba(108, 92, 231, 0.3);
+
+  // Shadows
+  --shadow-sm: 0 1px 3px rgba(26, 29, 46, 0.06);
+  --shadow-md: 0 4px 16px rgba(26, 29, 46, 0.08);
+  --shadow-lg: 0 8px 32px rgba(26, 29, 46, 0.12);
+
+  // Border radius
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+
+  // Sidebar width
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 72px;
+}
+
+// SCSS variables for breakpoints
+$bp-tablet: 768px;
+$bp-desktop: 1024px;
+$bp-wide: 1440px;
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;

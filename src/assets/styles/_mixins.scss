@@ -1,0 +1,80 @@
+// ======================
+// Responsive Breakpoints (mobile-first)
+// ======================
+
+@mixin tablet {
+  @media (min-width: 768px) { @content; }
+}
+
+@mixin desktop {
+  @media (min-width: 1024px) { @content; }
+}
+
+@mixin wide {
+  @media (min-width: 1440px) { @content; }
+}
+
+@mixin mobile-only {
+  @media (max-width: 767px) { @content; }
+}
+
+// ======================
+// Typography
+// ======================
+
+@mixin heading($size: 1.5rem, $weight: 700) {
+  font-family: 'DM Sans', sans-serif;
+  font-size: $size;
+  font-weight: $weight;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+@mixin money-value($size: 1rem) {
+  font-family: 'Space Mono', monospace;
+  font-size: $size;
+  font-weight: 700;
+}
+
+// ======================
+// UI Helpers
+// ======================
+
+@mixin card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@mixin card-hover {
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
