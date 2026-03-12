@@ -50,10 +50,25 @@ export class DashboardComponent {
       ? this.transactionService.getAccountBalance(accountId)
       : this.transactionService.totalBalance();
 
+    const fmt = (v: number) => new Intl.NumberFormat('pt-BR', {
+      style: 'currency', currency: 'BRL',
+    }).format(v);
+
+    const incomeTotal = summary.income + summary.transferIn;
+    const expenseTotal = summary.expense + summary.transferOut;
+
+    const incomeDetail = accountId && summary.transferIn > 0
+      ? `${fmt(summary.income)} receitas + ${fmt(summary.transferIn)} transferências`
+      : undefined;
+
+    const expenseDetail = accountId && summary.transferOut > 0
+      ? `${fmt(summary.expense)} despesas + ${fmt(summary.transferOut)} transferências`
+      : undefined;
+
     return [
       { label: 'Saldo Atual', value: currentBalance, type: 'balance', icon: '💰' },
-      { label: 'Receitas', value: summary.income, type: 'income', icon: '📈' },
-      { label: 'Despesas', value: summary.expense, type: 'expense', icon: '📉' },
+      { label: 'Receitas', value: accountId ? incomeTotal : summary.income, type: 'income', icon: '📈', detail: incomeDetail },
+      { label: 'Despesas', value: accountId ? expenseTotal : summary.expense, type: 'expense', icon: '📉', detail: expenseDetail },
       { label: 'Balanço Mensal', value: summary.balance, type: 'neutral', icon: '📊' },
     ];
   });

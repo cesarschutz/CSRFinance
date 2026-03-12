@@ -9,42 +9,29 @@ import { FileService, FileStatus } from '../../../core/services/file.service';
   template: `
     <div class="file-bar">
       <div class="file-bar-left">
-        @if (fileService.hasFile()) {
-          <span class="file-icon">📄</span>
-          <span class="file-name">{{ fileService.fileName() }}</span>
-          <span class="file-status" [ngClass]="'status-' + fileService.status()">
-            {{ getStatusLabel() }}
-          </span>
-        } @else {
-          <span class="file-icon">📁</span>
-          <span class="file-hint">Nenhum arquivo vinculado</span>
-        }
+        <span class="file-icon">📄</span>
+        <span class="file-name">{{ fileService.fileName() }}</span>
+        <span class="file-status" [ngClass]="'status-' + fileService.status()">
+          {{ getStatusLabel() }}
+        </span>
       </div>
 
       <div class="file-bar-actions">
-        <button class="file-btn" (click)="fileService.newFile()" title="Novo arquivo">
-          ✨ Novo
+        <button
+          class="file-btn file-btn-save"
+          (click)="fileService.saveFile()"
+          [disabled]="fileService.status() === 'saving'"
+          title="Salvar arquivo"
+        >
+          💾 Salvar
         </button>
-        <button class="file-btn" (click)="fileService.openFile()" title="Abrir arquivo">
-          📂 Abrir
+        <button
+          class="file-btn"
+          (click)="fileService.closeFile()"
+          title="Fechar arquivo"
+        >
+          ✕ Fechar
         </button>
-        @if (fileService.hasFile()) {
-          <button
-            class="file-btn file-btn-save"
-            (click)="fileService.saveFile()"
-            [disabled]="fileService.status() === 'saving'"
-            title="Salvar arquivo"
-          >
-            💾 Salvar
-          </button>
-          <button
-            class="file-btn"
-            (click)="fileService.closeFile()"
-            title="Fechar arquivo"
-          >
-            ✕
-          </button>
-        }
       </div>
     </div>
 
@@ -95,12 +82,6 @@ import { FileService, FileStatus } from '../../../core/services/file.service';
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    .file-hint {
-      color: var(--text-muted);
-      font-style: italic;
-      font-size: 0.8125rem;
     }
 
     .file-status {

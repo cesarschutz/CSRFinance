@@ -99,6 +99,8 @@ export class TransactionService {
     income: number;
     expense: number;
     balance: number;
+    transferIn: number;
+    transferOut: number;
   } {
     const txns = this.getByMonth(year, month, accountId);
     const income = txns
@@ -107,7 +109,35 @@ export class TransactionService {
     const expense = txns
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
-    return { income, expense, balance: income - expense };
+
+    let transferIn = 0;
+    let transferOut = 0;
+
+    if (accountId) {
+      const allTxns = this.transactionsSignal();
+      const processedTransfers = new Set<string>();
+
+      for (const t of allTxns) {
+        if (t.type !== 'transfer' || !t.transferId) continue;
+        if (processedTransfers.has(t.transferId)) continue;
+
+        const d = new Date(t.date);
+        if (d.getFullYear() !== year || d.getMonth() !== month) continue;
+        if (t.accountId !== accountId && t.transferAccountId !== accountId) continue;
+
+        processedTransfers.add(t.transferId);
+        // First record of a pair is always the outgoing side:
+        // t.accountId = source, t.transferAccountId = destination
+        if (t.accountId === accountId) {
+          transferOut += t.amount;
+        } else {
+          transferIn += t.amount;
+        }
+      }
+    }
+
+    const balance = (income + transferIn) - (expense + transferOut);
+    return { income, expense, balance, transferIn, transferOut };
   }
 
   getAccountBalance(accountId: string): number {

@@ -72,6 +72,9 @@ export class FileService implements OnDestroy {
         this.fileNameSignal.set('CSRFinance.xlsx');
       }
 
+      // Clear all data for the new file
+      this.clearAllData();
+
       this.statusSignal.set('saving');
       const wb = this.buildWorkbook();
       await this.writeToFile(wb);
@@ -95,8 +98,12 @@ export class FileService implements OnDestroy {
         const [handle] = await (window as any).showOpenFilePicker({
           types: [{
             description: 'Planilha Excel',
-            accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] },
+            accept: {
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+              'application/vnd.ms-excel': ['.xls', '.xlsx'],
+            },
           }],
+          excludeAcceptAllOption: false,
           multiple: false,
         });
         this.fileHandle = handle;
@@ -112,13 +119,34 @@ export class FileService implements OnDestroy {
       }
 
       const wb = XLSX.read(buffer, { type: 'array' });
-      const data = this.parseWorkbook(wb);
-      this.importData(data);
+
+      // Check if the file has the expected sheets
+      const hasRequiredSheets = [this.SHEET_CONTAS, this.SHEET_CATEGORIAS, this.SHEET_TRANSACOES]
+        .every(s => wb.SheetNames.includes(s));
+
+      if (hasRequiredSheets) {
+        const data = this.parseWorkbook(wb);
+        this.importData(data);
+      } else if (wb.SheetNames.length === 0 || this.isEmptyWorkbook(wb)) {
+        // Empty file — initialize with current (empty) data and save structure
+        this.clearAllData();
+      } else {
+        throw new Error(
+          `Formato inválido. O arquivo deve conter as planilhas: "${this.SHEET_CONTAS}", "${this.SHEET_CATEGORIAS}", "${this.SHEET_TRANSACOES}". ` +
+          `Encontradas: "${wb.SheetNames.join('", "')}".`
+        );
+      }
 
       this.fileNameSignal.set(name);
       this.statusSignal.set('saved');
       this.lastSavedSignal.set(new Date());
       this.errorMessageSignal.set(null);
+
+      // Write structure to file if it was empty
+      if (!hasRequiredSheets) {
+        const newWb = this.buildWorkbook();
+        await this.writeToFile(newWb);
+      }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return;
       this.fileHandle = null;
@@ -185,6 +213,7 @@ export class FileService implements OnDestroy {
     this.statusSignal.set('no-file');
     this.lastSavedSignal.set(null);
     this.errorMessageSignal.set(null);
+    this.clearAllData();
   }
 
   clearError(): void {
@@ -195,6 +224,23 @@ export class FileService implements OnDestroy {
   }
 
   // ===== PRIVATE METHODS =====
+
+  private isEmptyWorkbook(wb: XLSX.WorkBook): boolean {
+    return wb.SheetNames.every(name => {
+      const ws = wb.Sheets[name];
+      if (!ws) return true;
+      const rows = XLSX.utils.sheet_to_json(ws);
+      return rows.length === 0;
+    });
+  }
+
+  private clearAllData(): void {
+    this.suppressAutoSave = true;
+    this.accountService.loadFromData([]);
+    this.categoryService.loadFromData([]);
+    this.transactionService.loadFromData([]);
+    this.suppressAutoSave = false;
+  }
 
   private async autoSave(): Promise<void> {
     if (!this.fileHandle) {
@@ -358,15 +404,9 @@ export class FileService implements OnDestroy {
     transactions: Transaction[];
   }): void {
     this.suppressAutoSave = true;
-    if (data.accounts.length > 0) {
-      this.accountService.loadFromData(data.accounts);
-    }
-    if (data.categories.length > 0) {
-      this.categoryService.loadFromData(data.categories);
-    }
-    if (data.transactions.length > 0) {
-      this.transactionService.loadFromData(data.transactions);
-    }
+    this.accountService.loadFromData(data.accounts);
+    this.categoryService.loadFromData(data.categories);
+    this.transactionService.loadFromData(data.transactions);
     this.suppressAutoSave = false;
   }
 

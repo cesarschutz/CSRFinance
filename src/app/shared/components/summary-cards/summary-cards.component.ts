@@ -7,6 +7,7 @@ export interface SummaryCard {
   value: number;
   type: 'balance' | 'income' | 'expense' | 'neutral';
   icon: string;
+  detail?: string;
 }
 
 @Component({
@@ -23,6 +24,9 @@ export interface SummaryCard {
             <span class="card-value money" [class]="'value-' + card.type">
               {{ card.value | currencyBrl }}
             </span>
+            @if (card.detail) {
+              <span class="card-detail">{{ card.detail }}</span>
+            }
           </div>
         </div>
       }
