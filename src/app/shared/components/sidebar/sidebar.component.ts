@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
@@ -74,12 +74,6 @@ interface NavItem {
           </button>
         }
 
-        @if (!collapsed) {
-          <button class="add-account-btn" (click)="addAccount.emit()">
-            <span>+</span>
-            <span>Adicionar conta</span>
-          </button>
-        }
       </div>
 
       <div class="sidebar-footer">
@@ -99,14 +93,13 @@ interface NavItem {
 export class SidebarComponent {
   @Input() collapsed = false;
   @Output() collapsedChange = new EventEmitter<boolean>();
-  @Output() addAccount = new EventEmitter<void>();
 
   navItems: NavItem[] = [
     { label: 'Dashboard', icon: '📊', route: '/dashboard' },
+    { label: 'Contas', icon: '🏦', route: '/accounts' },
     { label: 'Transações', icon: '💳', route: '/transactions' },
     { label: 'Relatórios', icon: '📈', route: '/reports' },
     { label: 'Categorias', icon: '🏷️', route: '/categories' },
-    { label: 'Contas', icon: '🏦', route: '/accounts' },
   ];
 
   constructor(

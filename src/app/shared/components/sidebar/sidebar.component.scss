@@ -200,26 +200,6 @@
   opacity: 0.8;
 }
 
-.add-account-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: var(--radius-xs);
-  color: var(--accent);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  transition: all var(--transition-fast);
-  margin-top: 4px;
-  opacity: 0.85;
-
-  &:hover {
-    background: var(--accent-bg);
-    opacity: 1;
-  }
-}
-
 .sidebar-footer {
   padding: 16px;
   border-top: 1px solid var(--glass-border);

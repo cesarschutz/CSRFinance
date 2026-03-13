@@ -28,6 +28,9 @@ jobs:
 
       - run: npx ng build --configuration production --base-href /CSRFinance/
 
+      - name: Copy index.html to 404.html for SPA routing
+        run: cp dist/csrfinance/browser/index.html dist/csrfinance/browser/404.html
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist/csrfinance/browser

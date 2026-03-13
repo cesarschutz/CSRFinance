@@ -87,9 +87,9 @@ interface NavItem {
 export class MobileNavComponent {
   navItems: NavItem[] = [
     { label: 'Início', icon: '📊', route: '/dashboard' },
+    { label: 'Contas', icon: '🏦', route: '/accounts' },
     { label: 'Transações', icon: '💳', route: '/transactions' },
     { label: 'Relatórios', icon: '📈', route: '/reports' },
     { label: 'Categorias', icon: '🏷️', route: '/categories' },
-    { label: 'Contas', icon: '🏦', route: '/accounts' },
   ];
 }
