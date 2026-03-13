@@ -106,6 +106,7 @@ src/app/
 - **Filtro por conta:** `accountService.selectedAccountId()` filtra dados globalmente
 
 ## Histórico de Mudanças
+- **v0.5.0** - Revisão de produção: welcome screen como gate obrigatório, tela de boas-vindas com features, correção de bugs (timezone em datas, newFile/closeFile limpando dados, open file aceitando xlsx), summary cards com breakdown de transferências por conta, meta tags para PWA, mobile nav com indicador ativo, sidebar com scroll em contas e footer fixo, dashboard com empty states melhores e link "Ver todas", transações mostram transferências com ícone 🔄 e cor accent, month picker com capitalização correta, seleção de texto estilizada, scrollbar mais sutil
 - **v0.3.2** - Fix: cálculo de saldos em transferências (deduplicação por transferId), validação de workbook simplificada
 - **v0.3.1** - Fix: reatividade dos saldos (computed signals), app inicia vazio (sem seed data), validação de formato ao abrir .xlsx com mensagens de erro claras
 - **v0.3.0** - Persistência em arquivo Excel (.xlsx): FileService com SheetJS, FileBarComponent, auto-save via File System Access API, 3 planilhas (Contas, Categorias, Transações), fallback para download

@@ -76,7 +76,7 @@ export class TransactionService {
 
   getByMonth(year: number, month: number, accountId?: string | null): Transaction[] {
     return this.transactionsSignal().filter(t => {
-      const d = new Date(t.date);
+      const d = new Date(t.date + 'T00:00:00');
       const matchMonth = d.getFullYear() === year && d.getMonth() === month;
       const matchAccount = !accountId || t.accountId === accountId;
       return matchMonth && matchAccount;
@@ -121,7 +121,7 @@ export class TransactionService {
         if (t.type !== 'transfer' || !t.transferId) continue;
         if (processedTransfers.has(t.transferId)) continue;
 
-        const d = new Date(t.date);
+        const d = new Date(t.date + 'T00:00:00');
         if (d.getFullYear() !== year || d.getMonth() !== month) continue;
         if (t.accountId !== accountId && t.transferAccountId !== accountId) continue;
 

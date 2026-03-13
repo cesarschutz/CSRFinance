@@ -60,7 +60,8 @@ export class MonthPickerComponent {
 
   get monthLabel(): string {
     const date = new Date(this.year, this.month);
-    return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    const month = date.toLocaleDateString('pt-BR', { month: 'long' });
+    return `${month.charAt(0).toUpperCase() + month.slice(1)} ${this.year}`;
   }
 
   prev(): void {

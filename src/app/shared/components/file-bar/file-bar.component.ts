@@ -14,6 +14,9 @@ import { FileService, FileStatus } from '../../../core/services/file.service';
         <span class="file-status" [ngClass]="'status-' + fileService.status()">
           {{ getStatusLabel() }}
         </span>
+        @if (fileService.lastSaved() && fileService.status() === 'saved') {
+          <span class="file-time">{{ formatTime(fileService.lastSaved()!) }}</span>
+        }
       </div>
 
       <div class="file-bar-actions">
@@ -112,6 +115,12 @@ import { FileService, FileStatus } from '../../../core/services/file.service';
       }
     }
 
+    .file-time {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
     .file-bar-actions {
       display: flex;
       gap: 6px;
@@ -201,6 +210,10 @@ export class FileBarComponent {
       'error': 'Erro',
     };
     return labels[this.fileService.status()];
+  }
+
+  formatTime(date: Date): string {
+    return `às ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
   }
 
   dismissError(): void {

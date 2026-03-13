@@ -25,8 +25,9 @@
         />
       } @else {
         <div class="chart-empty">
-          <span class="chart-empty-icon">📊</span>
-          <p>Nenhuma despesa neste mês</p>
+          <span class="chart-empty-icon">💤</span>
+          <p class="chart-empty-title">Sem despesas</p>
+          <p class="chart-empty-hint">Nenhuma despesa registrada neste mês</p>
         </div>
       }
     </div>
@@ -46,7 +47,12 @@
 
   <!-- Recent Transactions -->
   <div class="recent-section">
-    <h2 class="section-title">Transações Recentes</h2>
+    <div class="section-header">
+      <h2 class="section-title">Transações Recentes</h2>
+      @if (recentTransactions().length > 0) {
+        <a class="section-link" routerLink="/transactions">Ver todas →</a>
+      }
+    </div>
 
     @if (recentTransactions().length > 0) {
       <!-- Desktop table -->
@@ -66,13 +72,27 @@
                 <td class="col-date">{{ txn.formattedDate }}</td>
                 <td class="col-description">{{ txn.description }}</td>
                 <td class="col-category">
-                  <span class="category-badge">
-                    <span class="category-icon">{{ txn.categoryIcon }}</span>
-                    {{ txn.categoryName }}
-                  </span>
+                  @if (txn.type === 'transfer') {
+                    <span class="category-badge transfer-badge">
+                      <span class="category-icon">🔄</span>
+                      Transferência
+                    </span>
+                  } @else {
+                    <span class="category-badge">
+                      <span class="category-icon">{{ txn.categoryIcon }}</span>
+                      {{ txn.categoryName }}
+                    </span>
+                  }
                 </td>
-                <td class="col-value" [class.value-income]="txn.type === 'income'" [class.value-expense]="txn.type === 'expense'">
-                  {{ txn.type === 'expense' ? '- ' : '+ ' }}{{ txn.amount | currencyBrl }}
+                <td class="col-value"
+                    [class.value-income]="txn.type === 'income'"
+                    [class.value-expense]="txn.type === 'expense'"
+                    [class.value-transfer]="txn.type === 'transfer'">
+                  @switch (txn.type) {
+                    @case ('income') { + {{ txn.amount | currencyBrl }} }
+                    @case ('expense') { - {{ txn.amount | currencyBrl }} }
+                    @case ('transfer') { {{ txn.amount | currencyBrl }} }
+                  }
                 </td>
               </tr>
             }
@@ -83,18 +103,32 @@
       <!-- Mobile cards -->
       <div class="recent-cards-mobile">
         @for (txn of recentTransactions(); track txn.id) {
-          <div class="txn-card-mobile">
+          <div class="txn-card-mobile" [class]="'txn-type-' + txn.type">
             <div class="txn-card-top">
-              <span class="category-badge">
-                <span class="category-icon">{{ txn.categoryIcon }}</span>
-                {{ txn.categoryName }}
-              </span>
+              @if (txn.type === 'transfer') {
+                <span class="category-badge transfer-badge">
+                  <span class="category-icon">🔄</span>
+                  Transferência
+                </span>
+              } @else {
+                <span class="category-badge">
+                  <span class="category-icon">{{ txn.categoryIcon }}</span>
+                  {{ txn.categoryName }}
+                </span>
+              }
               <span class="txn-date-mobile">{{ txn.formattedDate }}</span>
             </div>
             <div class="txn-card-bottom">
               <span class="txn-description-mobile">{{ txn.description }}</span>
-              <span class="txn-value-mobile" [class.value-income]="txn.type === 'income'" [class.value-expense]="txn.type === 'expense'">
-                {{ txn.type === 'expense' ? '- ' : '+ ' }}{{ txn.amount | currencyBrl }}
+              <span class="txn-value-mobile"
+                    [class.value-income]="txn.type === 'income'"
+                    [class.value-expense]="txn.type === 'expense'"
+                    [class.value-transfer]="txn.type === 'transfer'">
+                @switch (txn.type) {
+                  @case ('income') { + {{ txn.amount | currencyBrl }} }
+                  @case ('expense') { - {{ txn.amount | currencyBrl }} }
+                  @case ('transfer') { {{ txn.amount | currencyBrl }} }
+                }
               </span>
             </div>
           </div>
@@ -102,8 +136,9 @@
       </div>
     } @else {
       <div class="chart-card empty-transactions">
-        <span class="chart-empty-icon">📋</span>
-        <p>Nenhuma transação neste mês</p>
+        <span class="chart-empty-icon">💤</span>
+        <p class="chart-empty-title">Sem movimentações</p>
+        <p class="chart-empty-hint">Adicione transações para vê-las aqui</p>
       </div>
     }
   </div>

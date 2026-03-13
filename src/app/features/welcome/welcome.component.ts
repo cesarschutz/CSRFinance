@@ -10,21 +10,32 @@ import { FileService } from '../../core/services/file.service';
     <div class="welcome">
       <div class="welcome-card">
         <div class="welcome-logo">
-          <span class="logo-icon">💰</span>
+          <div class="logo-icon-wrapper">
+            <span class="logo-icon">💰</span>
+          </div>
           <h1 class="logo-text">CSRFinance</h1>
         </div>
 
         <p class="welcome-subtitle">Sistema Financeiro Pessoal</p>
 
-        <div class="welcome-description">
-          <p>Para começar, abra um arquivo <strong>.xlsx</strong> existente ou crie um novo.</p>
-          <p class="welcome-hint">Seus dados ficam salvos automaticamente no arquivo escolhido.</p>
+        <div class="welcome-features">
+          <div class="feature">
+            <span class="feature-icon">📊</span>
+            <span>Dashboard inteligente</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">🔄</span>
+            <span>Transferências entre contas</span>
+          </div>
+          <div class="feature">
+            <span class="feature-icon">💾</span>
+            <span>Salvamento automático</span>
+          </div>
         </div>
 
         <div class="welcome-actions">
           <button class="btn btn-primary" (click)="openFile()">
-            <span class="btn-icon">📂</span>
-            Abrir arquivo existente
+            📂 Abrir arquivo existente
           </button>
 
           <div class="divider">
@@ -32,8 +43,7 @@ import { FileService } from '../../core/services/file.service';
           </div>
 
           <button class="btn btn-secondary" (click)="newFile()">
-            <span class="btn-icon">✨</span>
-            Criar novo arquivo
+            ✨ Criar novo arquivo
           </button>
         </div>
 
@@ -46,7 +56,7 @@ import { FileService } from '../../core/services/file.service';
       </div>
 
       <p class="welcome-footer">
-        Seus dados nunca saem do seu dispositivo.
+        🔒 Seus dados ficam no seu dispositivo — nada é enviado para servidores.
       </p>
     </div>
   `,
@@ -59,7 +69,7 @@ import { FileService } from '../../core/services/file.service';
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: var(--bg);
+      background: linear-gradient(180deg, var(--bg) 0%, #E4E6F0 100%);
       padding: 24px;
     }
 
@@ -67,26 +77,48 @@ import { FileService } from '../../core/services/file.service';
       background: var(--surface);
       border-radius: var(--radius);
       box-shadow: var(--shadow-lg);
-      padding: 40px 32px;
+      padding: 40px 28px;
       max-width: 440px;
       width: 100%;
       text-align: center;
+      animation: slideUp 0.4s ease-out;
 
       @include tablet {
         padding: 48px 40px;
       }
     }
 
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .welcome-logo {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
       gap: 12px;
       margin-bottom: 8px;
     }
 
+    .logo-icon-wrapper {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      background: var(--accent-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .logo-icon {
-      font-size: 2.5rem;
+      font-size: 2rem;
     }
 
     .logo-text {
@@ -100,30 +132,39 @@ import { FileService } from '../../core/services/file.service';
     .welcome-subtitle {
       color: var(--text-secondary);
       font-size: 0.9375rem;
-      margin: 0 0 28px;
+      margin: 0 0 24px;
     }
 
-    .welcome-description {
+    .welcome-features {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       margin-bottom: 32px;
+      padding: 16px;
+      background: var(--surface-hover);
+      border-radius: var(--radius-sm);
+    }
 
-      p {
-        color: var(--text-secondary);
-        font-size: 0.875rem;
-        line-height: 1.6;
-        margin: 0;
-      }
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
 
-      .welcome-hint {
-        margin-top: 8px;
-        font-size: 0.8125rem;
-        color: var(--text-muted);
-      }
+    .feature-icon {
+      font-size: 1rem;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
     }
 
     .welcome-actions {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .btn {
@@ -141,10 +182,6 @@ import { FileService } from '../../core/services/file.service';
       border: 2px solid transparent;
     }
 
-    .btn-icon {
-      font-size: 1.125rem;
-    }
-
     .btn-primary {
       background: var(--accent);
       color: #fff;
@@ -153,7 +190,12 @@ import { FileService } from '../../core/services/file.service';
       &:hover {
         background: var(--accent-hover);
         border-color: var(--accent-hover);
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: translateY(0);
       }
     }
 
@@ -174,7 +216,7 @@ import { FileService } from '../../core/services/file.service';
       align-items: center;
       gap: 16px;
       color: var(--text-muted);
-      font-size: 0.8125rem;
+      font-size: 0.75rem;
 
       &::before, &::after {
         content: '';
@@ -232,7 +274,6 @@ export class WelcomeComponent {
       this.errorMessage.set(null);
       await this.fileService.openFile();
     } catch {
-      // Error is handled inside FileService, but we also show it here
       if (this.fileService.errorMessage()) {
         this.errorMessage.set(this.fileService.errorMessage());
         this.fileService.clearError();

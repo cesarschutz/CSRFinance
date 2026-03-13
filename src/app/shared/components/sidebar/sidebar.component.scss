@@ -22,6 +22,7 @@
   justify-content: space-between;
   padding: 20px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
 }
 
 .logo {
@@ -35,10 +36,11 @@
 }
 
 .logo-text {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 800;
   color: #fff;
   white-space: nowrap;
+  letter-spacing: -0.3px;
 }
 
 .collapse-btn {
@@ -63,6 +65,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .nav-item {
@@ -72,7 +75,7 @@
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   color: var(--sidebar-text);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.15s;
   white-space: nowrap;
@@ -85,11 +88,12 @@
   &.active {
     background: var(--sidebar-active);
     color: var(--sidebar-text-active);
+    font-weight: 600;
   }
 }
 
 .nav-icon {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   width: 24px;
   text-align: center;
   flex-shrink: 0;
@@ -100,6 +104,19 @@
   padding: 12px 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   overflow-y: auto;
+  min-height: 0;
+
+  // Thin scrollbar
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+  }
 }
 
 .accounts-header {
@@ -107,9 +124,9 @@
 }
 
 .accounts-title {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   color: var(--sidebar-text);
   font-weight: 600;
 }
@@ -122,7 +139,7 @@
   padding: 8px 12px;
   border-radius: var(--radius-xs);
   color: var(--sidebar-text);
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   transition: all 0.15s;
   white-space: nowrap;
 
@@ -134,6 +151,10 @@
   &.active {
     background: var(--sidebar-active);
     color: var(--sidebar-text-active);
+
+    .account-balance {
+      color: var(--sidebar-text-active);
+    }
   }
 }
 
@@ -152,9 +173,10 @@
 }
 
 .account-balance {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--sidebar-text);
   flex-shrink: 0;
+  opacity: 0.8;
 }
 
 .add-account-btn {
@@ -165,13 +187,15 @@
   padding: 8px 12px;
   border-radius: var(--radius-xs);
   color: var(--accent);
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   transition: all 0.15s;
   margin-top: 4px;
+  opacity: 0.85;
 
   &:hover {
     background: var(--sidebar-hover);
+    opacity: 1;
   }
 }
 
@@ -180,21 +204,24 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   white-space: nowrap;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .footer-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   color: var(--sidebar-text);
   font-weight: 500;
 }
 
 .footer-value {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: #fff;
+  font-weight: 700;
 }
 
 .footer-icon {

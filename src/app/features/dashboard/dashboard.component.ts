@@ -1,5 +1,6 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
 
@@ -17,6 +18,7 @@ import { CurrencyBrlPipe } from '../../shared/pipes/currency-brl.pipe';
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     BaseChartDirective,
     MonthPickerComponent,
     SummaryCardsComponent,
@@ -175,7 +177,7 @@ export class DashboardComponent {
     const accountId = this.accountService.selectedAccountId();
     const transactions = this.transactionService
       .getByMonth(this.year(), this.month(), accountId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => new Date(b.date + 'T00:00:00').getTime() - new Date(a.date + 'T00:00:00').getTime())
       .slice(0, 5);
 
     return transactions.map(t => {

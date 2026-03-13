@@ -45,8 +45,9 @@
 }
 
 .chart-title {
-  @include heading(1.05rem, 600);
+  @include heading(1rem, 600);
   margin: 0 0 20px 0;
+  color: var(--text);
 }
 
 .bar-chart-wrapper {
@@ -64,16 +65,24 @@
   align-items: center;
   justify-content: center;
   padding: 48px 16px;
-  color: var(--text-secondary);
-  gap: 12px;
+  gap: 8px;
 
   .chart-empty-icon {
-    font-size: 2rem;
+    font-size: 2.5rem;
+    opacity: 0.6;
   }
 
-  p {
+  .chart-empty-title {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .chart-empty-hint {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
   }
 }
 
@@ -85,9 +94,25 @@
   margin-top: 24px;
 }
 
+.section-header {
+  @include flex-between;
+  margin-bottom: 16px;
+}
+
 .section-title {
-  @include heading(1.05rem, 600);
-  margin: 0 0 16px 0;
+  @include heading(1rem, 600);
+  margin: 0;
+}
+
+.section-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--accent);
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.75;
+  }
 }
 
 // Desktop table
@@ -108,18 +133,18 @@
   th {
     text-align: left;
     padding: 12px 16px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.05em;
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
   }
 
   td {
     padding: 14px 16px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: var(--text);
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
@@ -140,7 +165,7 @@
 
 .col-date {
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
 }
 
 .col-description {
@@ -151,14 +176,18 @@
 
 .col-value {
   text-align: right;
-  @include money-value(0.9rem);
+  @include money-value(0.875rem);
 
   &.value-income {
-    color: #00B894;
+    color: var(--income);
   }
 
   &.value-expense {
-    color: #E84393;
+    color: var(--expense);
+  }
+
+  &.value-transfer {
+    color: var(--accent);
   }
 }
 
@@ -166,7 +195,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
+}
+
+.transfer-badge {
+  color: var(--accent);
 }
 
 .category-icon {
@@ -177,7 +210,7 @@
 .recent-cards-mobile {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 
   @include tablet {
     display: none;
@@ -190,6 +223,19 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  border-left: 3px solid var(--border);
+
+  &.txn-type-income {
+    border-left-color: var(--income);
+  }
+
+  &.txn-type-expense {
+    border-left-color: var(--expense);
+  }
+
+  &.txn-type-transfer {
+    border-left-color: var(--accent);
+  }
 }
 
 .txn-card-top {
@@ -197,8 +243,8 @@
 }
 
 .txn-date-mobile {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .txn-card-bottom {
@@ -209,20 +255,24 @@
 .txn-description-mobile {
   @include truncate;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   flex: 1;
 }
 
 .txn-value-mobile {
-  @include money-value(0.9rem);
+  @include money-value(0.875rem);
   flex-shrink: 0;
 
   &.value-income {
-    color: #00B894;
+    color: var(--income);
   }
 
   &.value-expense {
-    color: #E84393;
+    color: var(--expense);
+  }
+
+  &.value-transfer {
+    color: var(--accent);
   }
 }
 
@@ -232,15 +282,23 @@
   align-items: center;
   justify-content: center;
   padding: 40px 16px;
-  color: var(--text-secondary);
-  gap: 12px;
+  gap: 8px;
 
   .chart-empty-icon {
-    font-size: 2rem;
+    font-size: 2.5rem;
+    opacity: 0.6;
   }
 
-  p {
+  .chart-empty-title {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .chart-empty-hint {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
   }
 }
