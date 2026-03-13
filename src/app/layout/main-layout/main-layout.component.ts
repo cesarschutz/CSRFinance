@@ -39,24 +39,24 @@ import { FileBarComponent } from '../../shared/components/file-bar/file-bar.comp
 
     .main-content {
       min-height: 100vh;
-      padding: 16px;
-      padding-bottom: 80px;
-      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      padding-bottom: 120px; // Space for mobile nav
+      transition: margin-left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-      &.with-sidebar {
-        margin-left: var(--sidebar-width);
-        padding: 24px 32px;
-        padding-bottom: 24px;
+      @media (min-width: 1024px) {
+        padding: 32px 48px;
+        padding-left: calc(var(--sidebar-width) + 48px);
+        padding-bottom: 32px;
+        
+        &.sidebar-collapsed {
+          padding-left: calc(var(--sidebar-collapsed-width) + 48px);
+        }
       }
 
-      &.sidebar-collapsed {
-        margin-left: var(--sidebar-collapsed-width);
-      }
-    }
-
-    @media (min-width: 768px) and (max-width: 1023px) {
-      .main-content.with-sidebar {
-        margin-left: var(--sidebar-collapsed-width);
+      @media (min-width: 768px) and (max-width: 1023px) {
+        padding-left: calc(var(--sidebar-collapsed-width) + 32px);
       }
     }
   `],

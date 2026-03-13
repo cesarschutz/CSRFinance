@@ -209,105 +209,131 @@
 <app-modal
   [isOpen]="showModal()"
   [title]="modalTitle()"
+  size="lg"
   (close)="closeModal()"
 >
-  <form [formGroup]="transactionForm" (ngSubmit)="saveTransaction()">
-    <div class="form-group">
-      <label for="txn-type">Tipo</label>
-      <select id="txn-type" formControlName="type" class="form-control">
-        <option value="income">Receita</option>
-        <option value="expense">Despesa</option>
-      </select>
+  <form [formGroup]="transactionForm" (ngSubmit)="saveTransaction()" class="modern-transaction-form">
+    <div class="form-columns">
+      <!-- Left Column -->
+      <div class="form-col-left">
+        <!-- Amount -->
+        <div class="amount-status-row" [class.income-border]="transactionForm.value.type === 'income'">
+          <div class="amount-input-group">
+            <span class="field-icon">💳</span>
+            <span class="currency-symbol"
+                  [class.expense]="transactionForm.value.type === 'expense'"
+                  [class.income]="transactionForm.value.type === 'income'">
+              R$
+            </span>
+            <input type="number" formControlName="amount" class="amount-input" placeholder="0,00" step="0.01">
+          </div>
+        </div>
+
+        <!-- Status Toggle -->
+        <div class="form-group flex-row">
+          <span class="field-icon">✅</span>
+          <label class="inline-label">Foi paga</label>
+          <label class="toggle-switch red-theme">
+             <input type="checkbox"
+                    [checked]="transactionForm.value.status === 'settled'"
+                    (change)="transactionForm.controls.status.setValue($any($event.target).checked ? 'settled' : 'pending')">
+             <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Custom Calendar -->
+        <div class="form-group flex-row">
+          <span class="field-icon">📅</span>
+          <app-custom-calendar formControlName="date"></app-custom-calendar>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Description -->
+        <div class="form-group flex-row">
+          <span class="field-icon">📄</span>
+          <input type="text" formControlName="description" class="modern-input desc-input" placeholder="Descrição">
+        </div>
+
+        <!-- Category -->
+        <div class="form-group flex-row">
+          <span class="field-icon">🏷️</span>
+          <app-category-select
+            formControlName="categoryId"
+            [categories]="filteredCategories()"
+            placeholder="Selecione a categoria"
+            [error]="transactionForm.controls.categoryId.touched && transactionForm.controls.categoryId.invalid">
+          </app-category-select>
+        </div>
+
+        <!-- Account -->
+        <div class="form-group flex-row">
+          <span class="field-icon">🏦</span>
+          <app-category-select
+            formControlName="accountId"
+            [categories]="accountOptions()"
+            placeholder="Selecione a conta"
+            [error]="transactionForm.controls.accountId.touched && transactionForm.controls.accountId.invalid">
+          </app-category-select>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="form-col-right">
+        <div class="recurring-section">
+          <!-- Fixed toggle -->
+          <div class="toggle-row">
+            <span class="toggle-icon">📌</span>
+            <label class="toggle-label">{{ transactionForm.value.type === 'income' ? 'Receita fixa' : 'Despesa fixa' }}</label>
+            <label class="toggle-switch red-theme">
+               <input type="checkbox" formControlName="isFixed">
+               <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="divider dotted"></div>
+
+          <!-- Repeat toggle -->
+          <div class="toggle-row">
+            <span class="toggle-icon">🔁</span>
+            <label class="toggle-label">Repetir</label>
+            <label class="toggle-switch">
+               <input type="checkbox" formControlName="isRepeated">
+               <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Repeat inputs (shown if isRepeated) -->
+          <div class="repeat-inputs-wrapper" [class.show]="transactionForm.value.isRepeated">
+            <div class="repeat-inputs">
+               <input type="number" formControlName="repeatCount" class="modern-input repeat-count" min="2">
+               <span class="repeat-text">vezes</span>
+               
+               <select formControlName="repeatFrequency" class="modern-select repeat-freq">
+                 <option value="monthly">Meses</option>
+                 <option value="semiannual">Semestres</option>
+                 <option value="annual">Anos</option>
+               </select>
+            </div>
+            <div class="repeat-line-divider"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="txn-description">Descrição</label>
-      <input
-        id="txn-description"
-        type="text"
-        formControlName="description"
-        class="form-control"
-        placeholder="Ex: Supermercado, Salário..."
-      />
-      @if (transactionForm.controls.description.touched && transactionForm.controls.description.hasError('required')) {
-        <span class="form-error">Descrição é obrigatória</span>
+    <!-- Errors -->
+    <div class="form-errors-global">
+      @if (transactionForm.invalid && transactionForm.touched) {
+        <span class="error-msg">Preencha todos os campos obrigatórios corretamente.</span>
       }
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label for="txn-date">Data</label>
-        <input
-          id="txn-date"
-          type="date"
-          formControlName="date"
-          class="form-control"
-        />
-        @if (transactionForm.controls.date.touched && transactionForm.controls.date.hasError('required')) {
-          <span class="form-error">Data é obrigatória</span>
-        }
-      </div>
-
-      <div class="form-group">
-        <label for="txn-amount">Valor</label>
-        <input
-          id="txn-amount"
-          type="number"
-          formControlName="amount"
-          class="form-control"
-          placeholder="0,00"
-          step="0.01"
-          min="0.01"
-        />
-        @if (transactionForm.controls.amount.touched && transactionForm.controls.amount.hasError('required')) {
-          <span class="form-error">Valor é obrigatório</span>
-        }
-        @if (transactionForm.controls.amount.touched && transactionForm.controls.amount.hasError('min')) {
-          <span class="form-error">Valor mínimo é R$ 0,01</span>
-        }
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label for="txn-category">Categoria</label>
-        <select id="txn-category" formControlName="categoryId" class="form-control">
-          <option value="" disabled>Selecione...</option>
-          @for (cat of filteredCategories(); track cat.id) {
-            <option [value]="cat.id">{{ cat.icon }} {{ cat.name }}</option>
-          }
-        </select>
-        @if (transactionForm.controls.categoryId.touched && transactionForm.controls.categoryId.hasError('required')) {
-          <span class="form-error">Categoria é obrigatória</span>
-        }
-      </div>
-
-      <div class="form-group">
-        <label for="txn-account">Conta</label>
-        <select id="txn-account" formControlName="accountId" class="form-control">
-          <option value="" disabled>Selecione...</option>
-          @for (acc of accounts(); track acc.id) {
-            <option [value]="acc.id">{{ acc.name }}</option>
-          }
-        </select>
-        @if (transactionForm.controls.accountId.touched && transactionForm.controls.accountId.hasError('required')) {
-          <span class="form-error">Conta é obrigatória</span>
-        }
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label for="txn-status">Status</label>
-      <select id="txn-status" formControlName="status" class="form-control">
-        <option value="settled">Efetivada</option>
-        <option value="pending">Pendente</option>
-      </select>
-    </div>
-
-    <div class="form-actions">
-      <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
-      <button type="submit" class="btn-save" [disabled]="transactionForm.invalid">
-        {{ editingTransaction() ? 'Salvar Alterações' : 'Adicionar' }}
+    <div class="form-actions modern-actions">
+      <button type="button" class="btn-cancel-modern" (click)="closeModal()">CANCELAR</button>
+      <button type="submit" class="btn-save-modern" [disabled]="transactionForm.invalid">
+        {{ editingTransaction() ? 'SALVAR ALTERAÇÕES' : 'SALVAR' }}
       </button>
     </div>
   </form>
@@ -317,94 +343,116 @@
 <app-modal
   [isOpen]="showTransferModal()"
   title="Nova Transferência"
+  size="lg"
   (close)="closeTransferModal()"
 >
-  <form [formGroup]="transferForm" (ngSubmit)="saveTransfer()">
-    <div class="form-group">
-      <label for="trf-description">Descrição</label>
-      <input
-        id="trf-description"
-        type="text"
-        formControlName="description"
-        class="form-control"
-        placeholder="Ex: Transferência entre contas"
-      />
-      @if (transferForm.controls.description.touched && transferForm.controls.description.hasError('required')) {
-        <span class="form-error">Descrição é obrigatória</span>
+  <form [formGroup]="transferForm" (ngSubmit)="saveTransfer()" class="modern-transaction-form">
+    <div class="form-columns">
+      <!-- Left Column -->
+      <div class="form-col-left">
+        <!-- Amount -->
+        <div class="amount-status-row" style="border-bottom-color: var(--transfer);">
+          <div class="amount-input-group">
+            <span class="field-icon">💳</span>
+            <span class="currency-symbol transfer">R$</span>
+            <input type="number" formControlName="amount" class="amount-input" placeholder="0,00" step="0.01">
+          </div>
+        </div>
+
+        <!-- Custom Calendar -->
+        <div class="form-group flex-row">
+          <span class="field-icon">📅</span>
+          <app-custom-calendar formControlName="date"></app-custom-calendar>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Description -->
+        <div class="form-group flex-row">
+          <span class="field-icon">📄</span>
+          <input type="text" formControlName="description" class="modern-input desc-input" placeholder="Descrição da transferência">
+        </div>
+
+        <!-- Account Origin -->
+        <div class="form-group flex-row">
+          <span class="field-icon">📤</span>
+          <app-category-select
+            formControlName="fromAccountId"
+            [categories]="accountOptions()"
+            placeholder="Conta Origem"
+            [error]="transferForm.controls.fromAccountId.touched && transferForm.controls.fromAccountId.invalid">
+          </app-category-select>
+        </div>
+
+        <!-- Account Destination -->
+        <div class="form-group flex-row">
+          <span class="field-icon">📥</span>
+          <app-category-select
+            formControlName="toAccountId"
+            [categories]="accountOptions()"
+            placeholder="Conta Destino"
+            [error]="transferForm.controls.toAccountId.touched && transferForm.controls.toAccountId.invalid">
+          </app-category-select>
+        </div>
+        
+        @if (transferForm.controls.fromAccountId.value && transferForm.controls.toAccountId.value && transferForm.controls.fromAccountId.value === transferForm.controls.toAccountId.value) {
+          <div class="form-warning" style="margin-top: 16px;">As contas de origem e destino devem ser diferentes.</div>
+        }
+      </div>
+
+      <!-- Right Column -->
+      <div class="form-col-right">
+        <div class="recurring-section">
+          <!-- Fixed toggle -->
+          <div class="toggle-row">
+            <span class="toggle-icon">📌</span>
+            <label class="toggle-label">Transferência fixa</label>
+            <label class="toggle-switch red-theme">
+               <input type="checkbox" formControlName="isFixed">
+               <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="divider dotted"></div>
+
+          <!-- Repeat toggle -->
+          <div class="toggle-row">
+            <span class="toggle-icon">🔁</span>
+            <label class="toggle-label">Repetir</label>
+            <label class="toggle-switch">
+               <input type="checkbox" formControlName="isRepeated">
+               <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Repeat inputs -->
+          <div class="repeat-inputs-wrapper" [class.show]="transferForm.value.isRepeated">
+            <div class="repeat-inputs">
+               <input type="number" formControlName="repeatCount" class="modern-input repeat-count" min="2">
+               <span class="repeat-text">vezes</span>
+               
+               <select formControlName="repeatFrequency" class="modern-select repeat-freq">
+                 <option value="monthly">Meses</option>
+                 <option value="semiannual">Semestres</option>
+                 <option value="annual">Anos</option>
+               </select>
+            </div>
+            <div class="repeat-line-divider"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Errors -->
+    <div class="form-errors-global">
+      @if (transferForm.invalid && transferForm.touched) {
+        <span class="error-msg">Preencha todos os campos obrigatórios corretamente.</span>
       }
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label for="trf-from">Conta Origem</label>
-        <select id="trf-from" formControlName="fromAccountId" class="form-control">
-          <option value="" disabled>Selecione...</option>
-          @for (acc of accounts(); track acc.id) {
-            <option [value]="acc.id">{{ acc.name }}</option>
-          }
-        </select>
-        @if (transferForm.controls.fromAccountId.touched && transferForm.controls.fromAccountId.hasError('required')) {
-          <span class="form-error">Conta origem é obrigatória</span>
-        }
-      </div>
-
-      <div class="form-group">
-        <label for="trf-to">Conta Destino</label>
-        <select id="trf-to" formControlName="toAccountId" class="form-control">
-          <option value="" disabled>Selecione...</option>
-          @for (acc of accounts(); track acc.id) {
-            <option [value]="acc.id">{{ acc.name }}</option>
-          }
-        </select>
-        @if (transferForm.controls.toAccountId.touched && transferForm.controls.toAccountId.hasError('required')) {
-          <span class="form-error">Conta destino é obrigatória</span>
-        }
-      </div>
-    </div>
-
-    @if (transferForm.controls.fromAccountId.value && transferForm.controls.toAccountId.value && transferForm.controls.fromAccountId.value === transferForm.controls.toAccountId.value) {
-      <div class="form-warning">As contas de origem e destino devem ser diferentes.</div>
-    }
-
-    <div class="form-row">
-      <div class="form-group">
-        <label for="trf-date">Data</label>
-        <input
-          id="trf-date"
-          type="date"
-          formControlName="date"
-          class="form-control"
-        />
-        @if (transferForm.controls.date.touched && transferForm.controls.date.hasError('required')) {
-          <span class="form-error">Data é obrigatória</span>
-        }
-      </div>
-
-      <div class="form-group">
-        <label for="trf-amount">Valor</label>
-        <input
-          id="trf-amount"
-          type="number"
-          formControlName="amount"
-          class="form-control"
-          placeholder="0,00"
-          step="0.01"
-          min="0.01"
-        />
-        @if (transferForm.controls.amount.touched && transferForm.controls.amount.hasError('required')) {
-          <span class="form-error">Valor é obrigatório</span>
-        }
-        @if (transferForm.controls.amount.touched && transferForm.controls.amount.hasError('min')) {
-          <span class="form-error">Valor mínimo é R$ 0,01</span>
-        }
-      </div>
-    </div>
-
-    <div class="form-actions">
-      <button type="button" class="btn-cancel" (click)="closeTransferModal()">Cancelar</button>
-      <button type="submit" class="btn-save" [disabled]="transferForm.invalid">
-        Transferir
-      </button>
+    <div class="form-actions modern-actions">
+      <button type="button" class="btn-cancel-modern" (click)="closeTransferModal()">CANCELAR</button>
+      <button type="submit" class="btn-save-modern" [disabled]="transferForm.invalid">TRANSFERIR</button>
     </div>
   </form>
 </app-modal>
@@ -416,16 +464,41 @@
   (close)="cancelDelete()"
 >
   <div class="delete-confirm">
-    @if (deletingTransaction()?.transferId) {
+    @if (deletingTransaction()?.recurringId) {
+      <p>Esta transação faz parte de uma recorrência.<br> O que deseja excluir?</p>
+      <div class="form-actions vertical-actions" style="flex-direction: column; gap: 8px;">
+        <button type="button" class="btn-cancel" style="width: 100%; border-color: rgba(239, 68, 68, 0.4); color: var(--danger)" (click)="executeDelete('single')">Excluir APENAS ESTA</button>
+        <button type="button" class="btn-cancel" style="width: 100%; border-color: rgba(239, 68, 68, 0.4); color: var(--danger)" (click)="executeDelete('future')">Excluir ESTA E AS FUTURAS</button>
+        <button type="button" class="btn-danger" style="width: 100%" (click)="executeDelete('all')">Excluir TODAS</button>
+        <button type="button" class="btn-cancel" style="width: 100%; margin-top: 8px;" (click)="cancelDelete()">Cancelar</button>
+      </div>
+    } @else if (deletingTransaction()?.transferId) {
       <p>Tem certeza que deseja excluir esta transferência?</p>
       <p class="delete-warning">Ambos os lados da transferência serão removidos. Esta ação não pode ser desfeita.</p>
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="btn-danger" (click)="executeDelete()">Excluir</button>
+      </div>
     } @else {
       <p>Tem certeza que deseja excluir esta transação?</p>
       <p class="delete-warning">Esta ação não pode ser desfeita.</p>
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="btn-danger" (click)="executeDelete()">Excluir</button>
+      </div>
     }
-    <div class="form-actions">
-      <button type="button" class="btn-cancel" (click)="cancelDelete()">Cancelar</button>
-      <button type="button" class="btn-danger" (click)="executeDelete()">Excluir</button>
+  </div>
+</app-modal>
+
+<!-- Edit Scope Modal -->
+<app-modal [isOpen]="showEditScopeModal()" title="Editar Série" (close)="cancelEditScope()">
+  <div class="delete-confirm">
+    <p>Esta transação faz parte de uma recorrência.<br>Como deseja aplicar as alterações?</p>
+    <div class="form-actions vertical-actions" style="flex-direction: column; gap: 8px;">
+      <button type="button" class="btn-cancel" style="width: 100%; color: var(--text);" (click)="confirmEditScope('single')">Alterar APENAS ESTA</button>
+      <button type="button" class="btn-cancel" style="width: 100%; color: var(--text);" (click)="confirmEditScope('future')">Alterar ESTA E AS FUTURAS</button>
+      <button type="button" class="btn-save" style="width: 100%;" (click)="confirmEditScope('all')">Alterar TODAS</button>
+      <button type="button" class="btn-cancel" style="width: 100%; margin-top: 8px;" (click)="cancelEditScope()">Cancelar</button>
     </div>
   </div>
 </app-modal>

@@ -263,18 +263,20 @@ export class ReportsComponent {
         {
           label: 'Receitas',
           data: balances.map(b => b.income),
-          backgroundColor: 'rgba(16, 185, 129, 0.7)',
-          borderColor: '#10B981',
+          backgroundColor: 'rgba(124, 58, 237, 0.85)',
+          borderColor: '#7C3AED',
           borderWidth: 1,
           borderRadius: 6,
+          hoverBackgroundColor: '#7C3AED',
         },
         {
           label: 'Despesas',
           data: balances.map(b => b.expense),
-          backgroundColor: 'rgba(244, 63, 94, 0.7)',
-          borderColor: '#F43F5E',
+          backgroundColor: 'rgba(56, 189, 248, 0.85)',
+          borderColor: '#38BDF8',
           borderWidth: 1,
           borderRadius: 6,
+          hoverBackgroundColor: '#38BDF8',
         },
       ],
     };
@@ -289,16 +291,21 @@ export class ReportsComponent {
         labels: {
           usePointStyle: true,
           padding: 20,
-          font: { family: "'DM Sans', sans-serif", size: 12 },
-          color: '#94A3B8',
+          font: { family: "'Outfit', sans-serif", size: 13, weight: 600 },
+          color: '#475569',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(21, 27, 46, 0.95)',
-        borderColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderColor: 'rgba(124, 58, 237, 0.1)',
         borderWidth: 1,
-        titleColor: '#F1F5F9',
-        bodyColor: '#94A3B8',
+        titleColor: '#0F172A',
+        bodyColor: '#334155',
+        titleFont: { family: "'Outfit', sans-serif", size: 14, weight: 700 },
+        bodyFont: { family: "'DM Sans', sans-serif", size: 13, weight: 500 },
+        padding: 12,
+        cornerRadius: 12,
+        boxPadding: 6,
         callbacks: {
           label: (ctx) => {
             const value = ctx.parsed.y;
@@ -316,16 +323,18 @@ export class ReportsComponent {
       x: {
         grid: { display: false },
         ticks: {
-          font: { family: "'DM Sans', sans-serif", size: 12 },
+          font: { family: "'Outfit', sans-serif", size: 12, weight: 600 },
           color: '#64748B',
         },
+        border: { display: false },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+        grid: { color: 'rgba(15, 23, 42, 0.04)', drawTicks: false },
         ticks: {
-          font: { family: "'Space Mono', monospace", size: 11 },
-          color: '#64748B',
+          font: { family: "'DM Sans', sans-serif", size: 12, weight: 500 },
+          color: '#94A3B8',
+          padding: 10,
           callback: (value) => {
             return new Intl.NumberFormat('pt-BR', {
               style: 'currency',
@@ -334,7 +343,12 @@ export class ReportsComponent {
             }).format(value as number);
           },
         },
+        border: { display: false, dash: [4, 4] },
       },
+    },
+    interaction: {
+      mode: 'index',
+      intersect: false,
     },
   };
 

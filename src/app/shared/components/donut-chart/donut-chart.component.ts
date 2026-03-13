@@ -59,18 +59,21 @@ export class DonutChartComponent implements OnChanges {
     }],
   };
 
-  chartOptions: ChartConfiguration<'doughnut'>['options'] = {
+    chartOptions: ChartConfiguration<'doughnut'>['options'] = {
     responsive: true,
     maintainAspectRatio: true,
-    cutout: '70%',
+    cutout: '75%',
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(21, 27, 46, 0.95)',
-        borderColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderColor: 'rgba(15, 23, 42, 0.05)',
         borderWidth: 1,
-        titleColor: '#F1F5F9',
-        bodyColor: '#94A3B8',
+        titleColor: '#0F172A',
+        bodyColor: '#475569',
+        boxPadding: 4,
+        padding: 12,
+        cornerRadius: 8,
         callbacks: {
           label: (ctx) => {
             const value = ctx.parsed;

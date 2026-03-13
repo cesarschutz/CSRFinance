@@ -1,4 +1,4 @@
-@import 'assets/styles/mixins';
+@use 'assets/styles/mixins' as *;
 
 // ==============================
 // Page layout
@@ -83,11 +83,22 @@
 // ==============================
 
 .chart-card {
-  @include card;
-  padding: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm), var(--shadow-bento);
+  padding: 24px;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md), var(--shadow-bento);
+  }
 
   @include tablet {
-    padding: 24px;
+    padding: 32px;
   }
 }
 
@@ -96,18 +107,18 @@
   width: 100%;
 
   &--line {
-    height: 250px;
+    height: 300px;
 
     @include tablet {
-      height: 300px;
+      height: 360px;
     }
   }
 
   &--bar {
-    height: 280px;
+    height: 300px;
 
     @include tablet {
-      height: 340px;
+      height: 360px;
     }
   }
 
@@ -124,18 +135,30 @@
 .category-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
 }
 
 .category-item {
-  @include card;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 16px;
+  padding: 16px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+
+  &:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: var(--shadow-md);
+    background: var(--surface-solid);
+  }
 
   @include tablet {
-    padding: 16px 20px;
+    padding: 20px 24px;
     align-items: center;
   }
 }
@@ -201,46 +224,64 @@
 // ==============================
 
 .daily-summary {
-  @include card;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
   @include flex-between;
-  padding: 16px 20px;
+  padding: 20px 24px;
+  margin-bottom: 8px;
 }
 
 .daily-summary-label {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: var(--text);
 }
 
 .daily-summary-value {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text);
 }
 
 .daily-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .daily-item {
-  @include card;
+  background: var(--surface-solid);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
   @include flex-between;
-  padding: 12px 16px;
+  padding: 16px 20px;
+  transition: transform var(--transition-fast);
+
+  &:hover {
+    transform: translateX(4px);
+    background: var(--surface-hover);
+  }
 
   @include tablet {
-    padding: 14px 20px;
+    padding: 16px 24px;
   }
 }
 
 .daily-date {
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: capitalize;
 }
 
 .daily-value {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 700;
   flex-shrink: 0;
 }
 
@@ -251,7 +292,7 @@
 .monthly-detail {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 16px;
 
   @include tablet {
     grid-template-columns: repeat(2, 1fr);
@@ -263,14 +304,25 @@
 }
 
 .monthly-card {
-  @include card;
-  padding: 16px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm), var(--shadow-bento);
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md), var(--shadow-bento);
+  }
 
   @include tablet {
-    padding: 20px;
+    padding: 24px;
   }
 }
 

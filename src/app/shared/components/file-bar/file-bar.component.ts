@@ -46,7 +46,7 @@ import { FileService, FileStatus } from '../../../core/services/file.service';
     }
   `,
   styles: [`
-    @import 'assets/styles/mixins';
+    @use 'assets/styles/mixins' as *;
 
     .file-bar {
       display: flex;

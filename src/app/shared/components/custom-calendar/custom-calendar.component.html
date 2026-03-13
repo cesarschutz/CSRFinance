@@ -1,0 +1,70 @@
+<div class="calendar-wrapper">
+  
+  <div class="pills-container">
+    <button type="button" 
+            class="date-pill" 
+            [class.active]="activePill() === 'today'"
+            (click)="selectToday()">
+      Hoje
+    </button>
+    <button type="button" 
+            class="date-pill" 
+            [class.active]="activePill() === 'yesterday'"
+            (click)="selectYesterday()">
+      Ontem
+    </button>
+    <button type="button" 
+            class="date-pill" 
+            [class.active]="activePill() === 'other' || showPopover()"
+            (click)="togglePopover($event)">
+      Outros...
+    </button>
+  </div>
+
+  @if (showPopover()) {
+    <div class="calendar-popover">
+      <div class="calendar-header">
+        <span class="header-year">{{ currentMonth().getFullYear() }}</span>
+        <span class="header-date">{{ headerLabel().split('\n')[1] }}</span>
+      </div>
+      
+      <div class="calendar-body">
+        <div class="month-nav">
+          <button type="button" class="nav-btn" (click)="prevMonth($event)">‹</button>
+          <span class="month-label">{{ monthLabel() }}</span>
+          <button type="button" class="nav-btn" (click)="nextMonth($event)">›</button>
+        </div>
+
+        <div class="week-days">
+          <span>Do</span>
+          <span>2ª</span>
+          <span>3ª</span>
+          <span>4ª</span>
+          <span>5ª</span>
+          <span>6ª</span>
+          <span>Sá</span>
+        </div>
+
+        <div class="days-grid">
+          @for (day of calendarDays(); track $index) {
+            @if (day) {
+              <button type="button" 
+                      class="day-btn" 
+                      [class.selected]="isSelected(day)"
+                      (click)="selectDate(day)">
+                {{ day }}
+              </button>
+            } @else {
+              <div class="empty-day"></div>
+            }
+          }
+        </div>
+      </div>
+
+      <div class="calendar-footer">
+        <button type="button" class="btn-text" (click)="closePopover()">CANCELAR</button>
+        <button type="button" class="btn-text" (click)="confirmSelection()">OK</button>
+      </div>
+    </div>
+  }
+</div>

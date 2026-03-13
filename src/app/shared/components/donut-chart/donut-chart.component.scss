@@ -1,4 +1,4 @@
-@import 'assets/styles/mixins';
+@use 'assets/styles/mixins' as *;
 
 .donut-wrapper {
   display: flex;
@@ -52,8 +52,9 @@
 
 .donut-center-value {
   font-size: 1.1rem;
+  font-weight: 800;
   color: var(--text);
-  text-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
+  letter-spacing: -0.5px;
 
   @include tablet {
     font-size: 1.25rem;

@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { CurrencyBrlPipe } from '../../pipes/currency-brl.pipe';
@@ -27,6 +27,32 @@ interface NavItem {
         <button class="collapse-btn" (click)="toggleCollapse()" aria-label="Colapsar sidebar">
           {{ collapsed ? '›' : '‹' }}
         </button>
+      </div>
+
+      <div class="action-menu-container" [class.collapsed]="collapsed">
+        <button class="btn-new-action" (click)="toggleActionMenu($event)">
+          <span class="btn-icon">＋</span>
+          @if (!collapsed) {
+            <span class="btn-text">Novo</span>
+          }
+        </button>
+
+        @if (actionMenuOpen) {
+          <div class="action-dropdown" [class.collapsed]="collapsed">
+            <button class="dropdown-item option-expense" (click)="openTransactionForm('expense')">
+              <span class="dropdown-icon">📉</span>
+              <span>Despesa</span>
+            </button>
+            <button class="dropdown-item option-income" (click)="openTransactionForm('income')">
+              <span class="dropdown-icon">📈</span>
+              <span>Receita</span>
+            </button>
+            <button class="dropdown-item option-transfer" (click)="openTransferForm()">
+              <span class="dropdown-icon">🔄</span>
+              <span>Transferência</span>
+            </button>
+          </div>
+        }
       </div>
 
       <nav class="sidebar-nav">
@@ -93,12 +119,14 @@ interface NavItem {
 export class SidebarComponent {
   @Input() collapsed = false;
   @Output() collapsedChange = new EventEmitter<boolean>();
+  
+  private router = inject(Router);
+  private elementRef = inject(ElementRef);
 
   navItems: NavItem[] = [
     { label: 'Dashboard', icon: '📊', route: '/dashboard' },
     { label: 'Contas', icon: '🏦', route: '/accounts' },
     { label: 'Transações', icon: '💳', route: '/transactions' },
-    { label: 'Recorrências', icon: '🔁', route: '/recurring' },
     { label: 'Relatórios', icon: '📈', route: '/reports' },
     { label: 'Categorias', icon: '🏷️', route: '/categories' },
   ];
@@ -108,8 +136,38 @@ export class SidebarComponent {
     public transactionService: TransactionService,
   ) {}
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.actionMenuOpen) {
+      const clickedInside = this.elementRef.nativeElement.querySelector('.action-menu-container')?.contains(event.target);
+      if (!clickedInside) {
+        this.actionMenuOpen = false;
+      }
+    }
+  }
+
   toggleCollapse(): void {
     this.collapsed = !this.collapsed;
     this.collapsedChange.emit(this.collapsed);
+    if (this.collapsed) {
+      this.actionMenuOpen = false;
+    }
+  }
+
+  actionMenuOpen = false;
+
+  toggleActionMenu(event: Event): void {
+    event.stopPropagation();
+    this.actionMenuOpen = !this.actionMenuOpen;
+  }
+
+  openTransactionForm(type: 'expense' | 'income'): void {
+    this.actionMenuOpen = false;
+    this.router.navigate(['/transactions'], { queryParams: { action: type } });
+  }
+
+  openTransferForm(): void {
+    this.actionMenuOpen = false;
+    this.router.navigate(['/transactions'], { queryParams: { action: 'transfer' } });
   }
 }

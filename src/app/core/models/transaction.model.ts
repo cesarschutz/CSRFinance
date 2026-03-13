@@ -14,4 +14,7 @@ export interface Transaction {
   transferId?: string;
   transferAccountId?: string;
   recurringId?: string;
+  isFixed?: boolean;
+  installmentCurrent?: number;
+  installmentTotal?: number;
 }

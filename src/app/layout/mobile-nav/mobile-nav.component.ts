@@ -28,59 +28,58 @@ interface NavItem {
   styles: [`
     .mobile-nav {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(11, 15, 26, 0.9);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      bottom: 24px;
+      left: 24px;
+      right: 24px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-full);
       display: flex;
       justify-content: space-around;
-      padding: 6px 0;
-      padding-bottom: calc(6px + env(safe-area-inset-bottom));
+      padding: 8px 12px;
       z-index: 100;
-      box-shadow: 0 -2px 12px rgba(26, 29, 46, 0.06);
+      box-shadow: var(--shadow-lg), var(--shadow-bento);
     }
 
     .mobile-nav-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
-      padding: 6px 14px;
-      border-radius: var(--radius-sm);
-      color: var(--text-muted);
-      font-size: 0.625rem;
-      font-weight: 600;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      gap: 4px;
+      padding: 8px 12px;
+      border-radius: var(--radius-full);
+      color: var(--text-secondary);
+      font-size: 0.65rem;
+      font-weight: 700;
+      transition: all var(--transition-base);
       position: relative;
 
       &.active {
         color: var(--accent);
+        background: var(--surface-solid);
+        box-shadow: var(--shadow-sm);
 
         .mobile-nav-icon {
-          transform: scale(1.1);
-          filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.5));
-        }
-
-        &::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 24px;
-          height: 3px;
-          background: var(--accent);
-          border-radius: 0 0 3px 3px;
+          transform: translateY(-2px) scale(1.1);
+          filter: drop-shadow(0 4px 6px rgba(99, 102, 241, 0.4));
         }
       }
     }
 
     .mobile-nav-icon {
       font-size: 1.25rem;
-      transition: transform 0.2s, filter 0.2s;
+      transition: transform var(--transition-base), filter var(--transition-fast);
+      filter: grayscale(1);
+
+      .active & {
+        filter: none;
+      }
+    }
+    
+    .mobile-nav-label {
+      line-height: 1;
     }
   `],
 })

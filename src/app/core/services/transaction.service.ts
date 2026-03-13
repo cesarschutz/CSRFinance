@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Transaction, TransactionType } from '../models/transaction.model';
+import { Transaction, TransactionType, TransactionStatus } from '../models/transaction.model';
 import { StorageService } from './storage.service';
 import { AccountService } from './account.service';
 
@@ -217,6 +217,110 @@ export class TransactionService {
 
   delete(id: string): void {
     this.transactionsSignal.update(txns => txns.filter(t => t.id !== id));
+    this.save();
+  }
+
+  // --- Advanced Recurring Logic ---
+
+  private generateDates(startDate: string, frequency: 'monthly' | 'semiannual' | 'annual', count: number): string[] {
+    const dates: string[] = [];
+    const [y, m, d] = startDate.split('-').map(Number);
+    let current = new Date(y, m - 1, d); // Months are 0-indexed in JS
+
+    for (let i = 0; i < count; i++) {
+        const strY = current.getFullYear();
+        const strM = String(current.getMonth() + 1).padStart(2, '0');
+        const strD = String(current.getDate()).padStart(2, '0');
+        dates.push(`${strY}-${strM}-${strD}`);
+        
+        if (frequency === 'monthly') current.setMonth(current.getMonth() + 1);
+        else if (frequency === 'semiannual') current.setMonth(current.getMonth() + 6);
+        else if (frequency === 'annual') current.setFullYear(current.getFullYear() + 1);
+    }
+    return dates;
+  }
+
+  addAdvanced(data: Omit<Transaction, 'id' | 'createdAt'> & { 
+    isRepeated?: boolean; 
+    repeatCount?: number; 
+    repeatFrequency?: 'monthly' | 'semiannual' | 'annual';
+  }): void {
+    const isFixed = data.isFixed;
+    const isRepeated = data.isRepeated;
+    
+    if (!isFixed && !isRepeated) {
+      this.add(data);
+      return;
+    }
+
+    const recurringId = 'rec-' + Date.now();
+    const count = isFixed ? 60 : (data.repeatCount || 2); // 60 months for fixed
+    const frequency = data.repeatFrequency || 'monthly';
+    const dates = this.generateDates(data.date, frequency, count);
+    const nowStr = new Date().toISOString();
+
+    const newTxns: Transaction[] = dates.map((dateStr, index) => {
+      // For future items, default them to pending if they are in the future
+      const isFuture = new Date(dateStr) > new Date();
+      const status: TransactionStatus = (index === 0) ? data.status : (isFuture ? 'pending' : data.status);
+      
+      return {
+        ...data,
+        id: 'txn-' + Date.now() + '-' + index,
+        createdAt: nowStr,
+        date: dateStr,
+        status,
+        recurringId,
+        isFixed,
+        installmentCurrent: index + 1,
+        installmentTotal: isFixed ? undefined : count
+      };
+    });
+
+    this.transactionsSignal.update(txns => [...txns, ...newTxns]);
+    this.save();
+  }
+
+  updateAdvanced(id: string, changes: Partial<Transaction>, scope: 'single' | 'future' | 'all'): void {
+      const txns = this.transactionsSignal();
+      const target = txns.find(t => t.id === id);
+      if (!target) return;
+
+      if (!target.recurringId || scope === 'single') {
+         this.update(id, changes);
+         return;
+      }
+
+      this.transactionsSignal.update(arr => arr.map(t => {
+          if (t.id === id) {
+             return { ...t, ...changes }; // Target gets full changes
+          }
+          if (t.recurringId === target.recurringId) {
+             if (scope === 'all' || (scope === 'future' && t.date > target.date)) {
+                 // Future items get the changes but keep their intrinsic date identity
+                 return { ...t, ...changes, date: t.date, status: t.status }; 
+             }
+          }
+          return t;
+      }));
+      this.save();
+  }
+
+  deleteAdvanced(id: string, scope: 'single' | 'future' | 'all'): void {
+    const txns = this.transactionsSignal();
+    const target = txns.find(t => t.id === id);
+    if (!target) return;
+
+    if (!target.recurringId || scope === 'single') {
+       this.delete(id);
+       return;
+    }
+
+    if (scope === 'all') {
+       this.transactionsSignal.update(arr => arr.filter(t => t.recurringId !== target.recurringId));
+    } else if (scope === 'future') {
+       this.transactionsSignal.update(arr => arr.filter(t => !(t.recurringId === target.recurringId && t.date >= target.date)));
+    }
     this.save();
   }
 

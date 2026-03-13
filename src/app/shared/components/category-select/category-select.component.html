@@ -1,0 +1,44 @@
+<div class="category-select-wrapper" [class.has-error]="error">
+  <button type="button" 
+          class="select-trigger" 
+          [class.open]="isOpen()"
+          (click)="toggleDropdown()">
+    
+    @if (selectedCategory()) {
+      <div class="selected-value">
+        <span class="cat-icon" [style.color]="selectedCategory()!.color">
+          {{ selectedCategory()!.icon }}
+        </span>
+        <span class="cat-name">{{ selectedCategory()!.name }}</span>
+      </div>
+    } @else {
+      <span class="placeholder">{{ placeholder }}</span>
+    }
+    
+    <span class="chevron" [class.up]="isOpen()">⌄</span>
+  </button>
+
+  @if (isOpen()) {
+    <div class="dropdown-list">
+      @for (cat of categories; track cat.id) {
+        <button type="button" 
+                class="dropdown-item" 
+                [class.active]="selectedId() === cat.id"
+                (click)="selectCategory(cat.id, $event)">
+          <span class="item-icon" 
+                [style.background]="cat.color + '20'" 
+                [style.color]="cat.color">
+            {{ cat.icon }}
+          </span>
+          <span class="item-name">{{ cat.name }}</span>
+          @if (selectedId() === cat.id) {
+            <span class="check-icon">✓</span>
+          }
+        </button>
+      }
+      @if (categories.length === 0) {
+        <div class="empty-state">Nenhuma categoria encontrada</div>
+      }
+    </div>
+  }
+</div>

@@ -61,7 +61,7 @@ import { FileService } from '../../core/services/file.service';
     </div>
   `,
   styles: [`
-    @import 'assets/styles/mixins';
+    @use 'assets/styles/mixins' as *;
 
     .welcome {
       display: flex;

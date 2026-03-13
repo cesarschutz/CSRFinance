@@ -7,10 +7,10 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div class="modal-overlay" [class.active]="isOpen" (click)="onOverlayClick($event)">
-      <div class="modal-container" [class.active]="isOpen" role="dialog" [attr.aria-label]="title">
+      <div class="modal-container" [class.active]="isOpen" [ngClass]="size" role="dialog" [attr.aria-label]="title">
         <div class="modal-header">
           <h3>{{ title }}</h3>
-          <button class="modal-close" (click)="close.emit()" aria-label="Fechar">
+          <button type="button" class="modal-close" (click)="close.emit()" aria-label="Fechar">
             ✕
           </button>
         </div>
@@ -25,6 +25,7 @@ import { CommonModule } from '@angular/common';
 export class ModalComponent {
   @Input() isOpen = false;
   @Input() title = '';
+  @Input() size: 'md' | 'lg' | 'xl' = 'md';
   @Output() close = new EventEmitter<void>();
 
   onOverlayClick(event: MouseEvent): void {

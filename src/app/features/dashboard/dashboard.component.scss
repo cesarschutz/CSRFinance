@@ -1,4 +1,4 @@
-@import 'assets/styles/mixins';
+@use 'assets/styles/mixins' as *;
 
 // ======================
 // Page Header
@@ -21,7 +21,7 @@
 }
 
 // ======================
-// Charts Grid
+// Charts Grid & Bento Box
 // ======================
 
 .charts-grid {
@@ -31,31 +31,53 @@
   margin-top: 24px;
 
   @include desktop {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    
+    // Bento layout: Bar chart takes 2 columns, donut takes 1
+    > :first-child { // Donut chart
+      grid-column: 1 / 2;
+    }
+    
+    > :last-child { // Bar chart
+      grid-column: 2 / 4;
+    }
   }
 }
 
 .chart-card {
-  @include card;
-  padding: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm), var(--shadow-bento);
+  padding: 24px;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md), var(--shadow-bento);
+  }
 
   @include tablet {
-    padding: 24px;
+    padding: 32px;
   }
 }
 
 .chart-title {
-  @include heading(1rem, 600);
-  margin: 0 0 20px 0;
+  @include heading(1.1rem, 700);
+  margin: 0 0 24px 0;
   color: var(--text);
+  letter-spacing: -0.5px;
 }
 
 .bar-chart-wrapper {
   position: relative;
-  height: 280px;
+  height: 300px;
+  width: 100%;
 
   @include tablet {
-    height: 320px;
+    height: 360px;
   }
 }
 
@@ -91,35 +113,49 @@
 // ======================
 
 .recent-section {
-  margin-top: 24px;
+  margin-top: 32px;
 }
 
 .section-header {
   @include flex-between;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  padding: 0 8px;
 }
 
 .section-title {
-  @include heading(1rem, 600);
+  @include heading(1.25rem, 700);
   margin: 0;
+  letter-spacing: -0.5px;
 }
 
 .section-link {
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--accent);
-  transition: opacity 0.15s;
+  background: var(--surface-solid);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
 
   &:hover {
-    opacity: 0.75;
+    background: var(--surface-hover);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
   }
 }
 
 // Desktop table
 .recent-table-wrapper {
-  @include card;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm), var(--shadow-bento);
   overflow-x: auto;
   display: none;
+  padding: 12px;
 
   @include tablet {
     display: block;
@@ -132,21 +168,21 @@
 
   th {
     text-align: left;
-    padding: 12px 16px;
+    padding: 16px;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 1px solid var(--border);
+    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.05);
     white-space: nowrap;
   }
 
   td {
-    padding: 14px 16px;
-    font-size: 0.875rem;
+    padding: 16px;
+    font-size: 0.9rem;
     color: var(--text);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.03);
     white-space: nowrap;
   }
 
@@ -155,47 +191,52 @@
   }
 
   tbody tr {
-    transition: background 0.15s;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+    border-radius: var(--radius-sm);
 
     &:hover {
-      background: var(--surface-hover);
+      background: var(--surface-solid);
+      transform: scale(1.005);
+      box-shadow: var(--shadow-sm);
+      
+      // Fix for internal table border radius during hover
+      td:first-child { border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
+      td:last-child { border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
     }
   }
 }
 
 .col-date {
   color: var(--text-secondary);
-  font-size: 0.8125rem;
+  font-weight: 500;
 }
 
 .col-description {
   @include truncate;
   max-width: 260px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .col-value {
   text-align: right;
-  @include money-value(0.875rem);
+  @include money-value(0.95rem);
+  font-weight: 700;
 
-  &.value-income {
-    color: var(--income);
-  }
-
-  &.value-expense {
-    color: var(--expense);
-  }
-
-  &.value-transfer {
-    color: var(--accent);
-  }
+  &.value-income { color: var(--income); }
+  &.value-expense { color: var(--text); }
+  &.value-transfer { color: var(--accent); }
 }
 
 .category-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8125rem;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--surface-solid);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
 }
 
 .transfer-badge {
@@ -203,7 +244,7 @@
 }
 
 .category-icon {
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 // Mobile cards

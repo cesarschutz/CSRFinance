@@ -110,16 +110,16 @@ export class DashboardComponent {
         {
           label: 'Receitas',
           data: monthlyTotals.map(m => m.income),
-          backgroundColor: 'rgba(16, 185, 129, 0.7)',
-          borderColor: '#10B981',
+          backgroundColor: 'rgba(16, 185, 129, 0.85)',
+          borderColor: 'rgba(16, 185, 129, 1)',
           borderWidth: 1,
           borderRadius: 6,
         },
         {
           label: 'Despesas',
           data: monthlyTotals.map(m => m.expense),
-          backgroundColor: 'rgba(244, 63, 94, 0.7)',
-          borderColor: '#F43F5E',
+          backgroundColor: 'rgba(239, 68, 68, 0.85)',
+          borderColor: 'rgba(239, 68, 68, 1)',
           borderWidth: 1,
           borderRadius: 6,
         },
@@ -136,16 +136,19 @@ export class DashboardComponent {
         labels: {
           usePointStyle: true,
           padding: 20,
-          font: { family: "'DM Sans', sans-serif", size: 12 },
-          color: '#94A3B8',
+          font: { family: "'DM Sans', sans-serif", size: 12, weight: 600 },
+          color: '#475569',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(21, 27, 46, 0.95)',
-        borderColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderColor: 'rgba(15, 23, 42, 0.05)',
         borderWidth: 1,
-        titleColor: '#F1F5F9',
-        bodyColor: '#94A3B8',
+        titleColor: '#0F172A',
+        bodyColor: '#475569',
+        boxPadding: 4,
+        padding: 12,
+        cornerRadius: 8,
         callbacks: {
           label: (ctx) => {
             const value = ctx.parsed.y ?? 0;
@@ -162,13 +165,14 @@ export class DashboardComponent {
       x: {
         grid: { display: false },
         ticks: {
-          font: { family: "'DM Sans', sans-serif", size: 12 },
+          font: { family: "'DM Sans', sans-serif", size: 12, weight: 500 },
           color: '#64748B',
         },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+        grid: { color: 'rgba(15, 23, 42, 0.03)' },
+        border: { dash: [4, 4] },
         ticks: {
           font: { family: "'Space Mono', monospace", size: 11 },
           color: '#64748B',
