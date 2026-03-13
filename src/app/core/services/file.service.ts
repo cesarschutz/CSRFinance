@@ -10,6 +10,7 @@ import { TransactionService } from './transaction.service';
 import { Account } from '../models/account.model';
 import { Category, CategoryType } from '../models/category.model';
 import { Transaction, TransactionType, TransactionStatus } from '../models/transaction.model';
+import { DEFAULT_CATEGORIES } from '../seed-data';
 
 export type FileStatus = 'no-file' | 'saved' | 'saving' | 'unsaved' | 'error';
 
@@ -72,8 +73,8 @@ export class FileService implements OnDestroy {
         this.fileNameSignal.set('CSRFinance.xlsx');
       }
 
-      // Clear all data for the new file
-      this.clearAllData();
+      // Clear all data and seed default categories
+      this.clearAllData(true);
 
       this.statusSignal.set('saving');
       const wb = this.buildWorkbook();
@@ -128,8 +129,8 @@ export class FileService implements OnDestroy {
         const data = this.parseWorkbook(wb);
         this.importData(data);
       } else if (wb.SheetNames.length === 0 || this.isEmptyWorkbook(wb)) {
-        // Empty file — initialize with current (empty) data and save structure
-        this.clearAllData();
+        // Empty file — initialize with default categories
+        this.clearAllData(true);
       } else {
         throw new Error(
           `Formato inválido. O arquivo deve conter as planilhas: "${this.SHEET_CONTAS}", "${this.SHEET_CATEGORIAS}", "${this.SHEET_TRANSACOES}". ` +
@@ -234,10 +235,10 @@ export class FileService implements OnDestroy {
     });
   }
 
-  private clearAllData(): void {
+  private clearAllData(seedDefaults = false): void {
     this.suppressAutoSave = true;
     this.accountService.loadFromData([]);
-    this.categoryService.loadFromData([]);
+    this.categoryService.loadFromData(seedDefaults ? DEFAULT_CATEGORIES : []);
     this.transactionService.loadFromData([]);
     this.suppressAutoSave = false;
   }
