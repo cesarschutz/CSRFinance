@@ -93,7 +93,10 @@
               }
             </td>
             <td class="date-cell">{{ formatDate(txn.date) }}</td>
-            <td class="description-cell">{{ txn.description }}</td>
+            <td class="description-cell">
+              @if (isRecurring(txn)) { <span class="recurring-icon" title="Transação recorrente">🔁</span> }
+              {{ txn.description }}
+            </td>
             <td class="category-cell">
               @if (txn.type === 'transfer') {
                 <span class="transfer-label">{{ getTransferLabel(txn) }}</span>
@@ -154,7 +157,10 @@
               @else { {{ txn.status === 'settled' ? '✅' : '⏳' }} }
             </span>
             <div class="card-info">
-              <span class="card-description">{{ txn.description }}</span>
+              <span class="card-description">
+                @if (isRecurring(txn)) { <span class="recurring-icon" title="Transação recorrente">🔁</span> }
+                {{ txn.description }}
+              </span>
               <span class="card-meta">
                 @if (txn.type === 'transfer') {
                   {{ getTransferLabel(txn) }}

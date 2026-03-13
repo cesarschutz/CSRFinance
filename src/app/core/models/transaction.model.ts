@@ -13,4 +13,5 @@ export interface Transaction {
   createdAt: string;
   transferId?: string;
   transferAccountId?: string;
+  recurringId?: string;
 }

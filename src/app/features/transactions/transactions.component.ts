@@ -197,6 +197,10 @@ export class TransactionsComponent implements OnInit {
     return `${from} → ${to}`;
   }
 
+  isRecurring(txn: Transaction): boolean {
+    return !!txn.recurringId;
+  }
+
   formatDate(dateStr: string): string {
     const [year, month, day] = dateStr.split('-');
     return `${day}/${month}/${year}`;

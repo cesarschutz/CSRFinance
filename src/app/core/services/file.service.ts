@@ -7,9 +7,11 @@ import { StorageService } from './storage.service';
 import { AccountService } from './account.service';
 import { CategoryService } from './category.service';
 import { TransactionService } from './transaction.service';
+import { RecurringTransactionService } from './recurring-transaction.service';
 import { Account } from '../models/account.model';
 import { Category, CategoryType } from '../models/category.model';
 import { Transaction, TransactionType, TransactionStatus } from '../models/transaction.model';
+import { RecurringTransaction, RecurrenceFrequency } from '../models/recurring-transaction.model';
 import { DEFAULT_CATEGORIES } from '../seed-data';
 
 export type FileStatus = 'no-file' | 'saved' | 'saving' | 'unsaved' | 'error';
@@ -20,6 +22,7 @@ export class FileService implements OnDestroy {
   private accountService = inject(AccountService);
   private categoryService = inject(CategoryService);
   private transactionService = inject(TransactionService);
+  private recurringService = inject(RecurringTransactionService);
 
   // State signals
   private statusSignal = signal<FileStatus>('no-file');
@@ -44,6 +47,7 @@ export class FileService implements OnDestroy {
   private readonly SHEET_CONTAS = 'Contas';
   private readonly SHEET_CATEGORIAS = 'Categorias';
   private readonly SHEET_TRANSACOES = 'Transações';
+  private readonly SHEET_RECORRENCIAS = 'Recorrências';
 
   // Auto-save subscription
   private autoSaveSub: Subscription;
@@ -240,6 +244,7 @@ export class FileService implements OnDestroy {
     this.accountService.loadFromData([]);
     this.categoryService.loadFromData(seedDefaults ? DEFAULT_CATEGORIES : []);
     this.transactionService.loadFromData([]);
+    this.recurringService.loadFromData([]);
     this.suppressAutoSave = false;
   }
 
@@ -305,9 +310,32 @@ export class FileService implements OnDestroy {
       criadoEm: t.createdAt,
       transferenciaId: t.transferId ?? '',
       contaTransferenciaId: t.transferAccountId ?? '',
+      recorrenciaId: t.recurringId ?? '',
     }));
     const wsTransactions = XLSX.utils.json_to_sheet(transactionRows);
     XLSX.utils.book_append_sheet(wb, wsTransactions, this.SHEET_TRANSACOES);
+
+    // Sheet "Recorrências"
+    const recurrences = this.recurringService.recurringTransactions();
+    const recurrenceRows = recurrences.map(r => ({
+      id: r.id,
+      descricao: r.description,
+      valor: r.amount,
+      tipo: r.type,
+      categoriaId: r.categoryId,
+      contaId: r.accountId,
+      frequencia: r.frequency,
+      dataInicio: r.startDate,
+      dataFim: r.endDate ?? '',
+      diaMes: r.dayOfMonth ?? '',
+      diaSemana: r.dayOfWeek ?? '',
+      statusPadrao: r.status,
+      ultimaGeracao: r.lastGeneratedDate,
+      ativo: r.active,
+      criadoEm: r.createdAt,
+    }));
+    const wsRecurrences = XLSX.utils.json_to_sheet(recurrenceRows);
+    XLSX.utils.book_append_sheet(wb, wsRecurrences, this.SHEET_RECORRENCIAS);
 
     return wb;
   }
@@ -353,6 +381,7 @@ export class FileService implements OnDestroy {
     accounts: Account[];
     categories: Category[];
     transactions: Transaction[];
+    recurringTransactions: RecurringTransaction[];
   } {
     this.validateWorkbook(workbook);
 
@@ -394,20 +423,43 @@ export class FileService implements OnDestroy {
       createdAt: String(r.criadoEm ?? new Date().toISOString()),
       ...(r.transferenciaId ? { transferId: String(r.transferenciaId) } : {}),
       ...(r.contaTransferenciaId ? { transferAccountId: String(r.contaTransferenciaId) } : {}),
+      ...(r.recorrenciaId ? { recurringId: String(r.recorrenciaId) } : {}),
     }));
 
-    return { accounts, categories, transactions };
+    // Sheet "Recorrências" (optional — backward compatible)
+    const rawRecurrences = parseSheet(this.SHEET_RECORRENCIAS);
+    const recurringTransactions: RecurringTransaction[] = rawRecurrences.map((r: any) => ({
+      id: String(r.id ?? ''),
+      description: String(r.descricao ?? ''),
+      amount: Number(r.valor ?? 0),
+      type: (['income', 'expense'].includes(r.tipo) ? r.tipo : 'expense') as TransactionType,
+      categoryId: String(r.categoriaId ?? ''),
+      accountId: String(r.contaId ?? ''),
+      frequency: (['weekly', 'biweekly', 'monthly', 'yearly'].includes(r.frequencia) ? r.frequencia : 'monthly') as RecurrenceFrequency,
+      startDate: String(r.dataInicio ?? ''),
+      ...(r.dataFim ? { endDate: String(r.dataFim) } : {}),
+      ...(r.diaMes !== '' && r.diaMes != null ? { dayOfMonth: Number(r.diaMes) } : {}),
+      ...(r.diaSemana !== '' && r.diaSemana != null ? { dayOfWeek: Number(r.diaSemana) } : {}),
+      status: (r.statusPadrao === 'pending' ? 'pending' : 'settled') as TransactionStatus,
+      lastGeneratedDate: String(r.ultimaGeracao ?? ''),
+      active: r.ativo === true || r.ativo === 'true',
+      createdAt: String(r.criadoEm ?? new Date().toISOString()),
+    }));
+
+    return { accounts, categories, transactions, recurringTransactions };
   }
 
   private importData(data: {
     accounts: Account[];
     categories: Category[];
     transactions: Transaction[];
+    recurringTransactions: RecurringTransaction[];
   }): void {
     this.suppressAutoSave = true;
     this.accountService.loadFromData(data.accounts);
     this.categoryService.loadFromData(data.categories);
     this.transactionService.loadFromData(data.transactions);
+    this.recurringService.loadFromData(data.recurringTransactions);
     this.suppressAutoSave = false;
   }
 

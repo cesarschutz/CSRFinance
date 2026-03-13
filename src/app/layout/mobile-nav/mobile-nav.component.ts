@@ -89,6 +89,7 @@ export class MobileNavComponent {
     { label: 'Início', icon: '📊', route: '/dashboard' },
     { label: 'Contas', icon: '🏦', route: '/accounts' },
     { label: 'Transações', icon: '💳', route: '/transactions' },
+    { label: 'Recorrências', icon: '🔁', route: '/recurring' },
     { label: 'Relatórios', icon: '📈', route: '/reports' },
     { label: 'Categorias', icon: '🏷️', route: '/categories' },
   ];

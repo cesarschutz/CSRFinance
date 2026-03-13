@@ -1,0 +1,305 @@
+<!-- Page Header -->
+<div class="page-header">
+  <h1>Recorrências</h1>
+  <div class="action-buttons">
+    <button class="btn-primary" (click)="openNewModal()">
+      + Nova Recorrência
+    </button>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+  <div class="filter-tabs">
+    @for (tab of filterTabs; track tab.value) {
+      <button
+        class="filter-tab"
+        [class.active]="filterType() === tab.value"
+        (click)="setFilter(tab.value)"
+      >
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+</div>
+
+<!-- Recurrences Table (Desktop) -->
+@if (recurrences().length > 0) {
+  <div class="table-container">
+    <table class="recurrences-table">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Descrição</th>
+          <th>Tipo</th>
+          <th>Categoria</th>
+          <th>Conta</th>
+          <th>Frequência</th>
+          <th>Próxima Data</th>
+          <th class="text-right">Valor</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (rec of recurrences(); track rec.id) {
+          <tr [class.paused]="!rec.active">
+            <td>
+              <span class="status-indicator" [class.active]="rec.active" [class.paused]="!rec.active">
+                {{ rec.active ? '🟢' : '⏸️' }}
+              </span>
+            </td>
+            <td class="description-cell">{{ rec.description }}</td>
+            <td>
+              <span class="type-badge" [class.income]="rec.type === 'income'" [class.expense]="rec.type === 'expense'">
+                {{ rec.type === 'income' ? 'Receita' : 'Despesa' }}
+              </span>
+            </td>
+            <td class="category-cell">{{ getCategoryName(rec.categoryId) }}</td>
+            <td class="account-cell">{{ getAccountName(rec.accountId) }}</td>
+            <td class="frequency-cell">{{ getFrequencyLabel(rec.frequency) }}</td>
+            <td class="date-cell">{{ formatDate(getNextDate(rec)) }}</td>
+            <td class="text-right">
+              <span
+                class="amount money"
+                [class.income]="rec.type === 'income'"
+                [class.expense]="rec.type === 'expense'"
+              >
+                @if (rec.type === 'expense') { - }
+                @else if (rec.type === 'income') { + }
+                {{ rec.amount | currencyBrl }}
+              </span>
+            </td>
+            <td class="text-center">
+              <div class="actions">
+                <button class="btn-action btn-toggle" (click)="toggleActive(rec)" [attr.aria-label]="rec.active ? 'Pausar' : 'Ativar'">
+                  {{ rec.active ? '⏸️' : '▶️' }}
+                </button>
+                <button class="btn-action btn-edit" (click)="openEditModal(rec)" aria-label="Editar recorrência">
+                  ✏️
+                </button>
+                <button class="btn-action btn-delete" (click)="confirmDelete(rec)" aria-label="Excluir recorrência">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile Cards -->
+  <div class="mobile-cards">
+    @for (rec of recurrences(); track rec.id) {
+      <div
+        class="recurrence-card"
+        [class.income-card]="rec.type === 'income'"
+        [class.expense-card]="rec.type === 'expense'"
+        [class.paused-card]="!rec.active"
+      >
+        <div class="card-top">
+          <div class="card-left">
+            <span class="card-status">{{ rec.active ? '🟢' : '⏸️' }}</span>
+            <div class="card-info">
+              <span class="card-description">{{ rec.description }}</span>
+              <span class="card-meta">
+                {{ getCategoryName(rec.categoryId) }} · {{ getAccountName(rec.accountId) }}
+              </span>
+              <span class="card-frequency">
+                {{ getFrequencyLabel(rec.frequency) }} · Próxima: {{ formatDate(getNextDate(rec)) }}
+              </span>
+            </div>
+          </div>
+          <div class="card-right">
+            <span
+              class="amount money"
+              [class.income]="rec.type === 'income'"
+              [class.expense]="rec.type === 'expense'"
+            >
+              @if (rec.type === 'expense') { - }
+              @else if (rec.type === 'income') { + }
+              {{ rec.amount | currencyBrl }}
+            </span>
+            <span class="card-type-badge" [class.income]="rec.type === 'income'" [class.expense]="rec.type === 'expense'">
+              {{ rec.type === 'income' ? 'Receita' : 'Despesa' }}
+            </span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-action btn-toggle" (click)="toggleActive(rec)">
+            {{ rec.active ? '⏸️ Pausar' : '▶️ Ativar' }}
+          </button>
+          <button class="btn-action btn-edit" (click)="openEditModal(rec)">
+            ✏️ Editar
+          </button>
+          <button class="btn-action btn-delete" (click)="confirmDelete(rec)">
+            🗑️ Excluir
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <app-empty-state
+    icon="🔁"
+    title="Nenhuma recorrência cadastrada"
+    message="Crie recorrências para gerar transações automaticamente (salário, aluguel, streaming, etc.)."
+  />
+}
+
+<!-- Recurrence Form Modal -->
+<app-modal
+  [isOpen]="showModal()"
+  [title]="modalTitle()"
+  (close)="closeModal()"
+>
+  <form [formGroup]="form" (ngSubmit)="saveRecurrence()">
+    <div class="form-group">
+      <label for="rec-type">Tipo</label>
+      <select id="rec-type" formControlName="type" class="form-control">
+        <option value="income">Receita</option>
+        <option value="expense">Despesa</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="rec-description">Descrição</label>
+      <input
+        id="rec-description"
+        type="text"
+        formControlName="description"
+        class="form-control"
+        placeholder="Ex: Salário, Aluguel, Netflix..."
+      />
+      @if (form.controls.description.touched && form.controls.description.hasError('required')) {
+        <span class="form-error">Descrição é obrigatória</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="rec-amount">Valor</label>
+        <input
+          id="rec-amount"
+          type="number"
+          formControlName="amount"
+          class="form-control"
+          placeholder="0,00"
+          step="0.01"
+          min="0.01"
+        />
+        @if (form.controls.amount.touched && form.controls.amount.hasError('required')) {
+          <span class="form-error">Valor é obrigatório</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="rec-frequency">Frequência</label>
+        <select id="rec-frequency" formControlName="frequency" class="form-control">
+          @for (opt of frequencyOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="rec-category">Categoria</label>
+        <select id="rec-category" formControlName="categoryId" class="form-control">
+          <option value="" disabled>Selecione...</option>
+          @for (cat of filteredCategories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.icon }} {{ cat.name }}</option>
+          }
+        </select>
+        @if (form.controls.categoryId.touched && form.controls.categoryId.hasError('required')) {
+          <span class="form-error">Categoria é obrigatória</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="rec-account">Conta</label>
+        <select id="rec-account" formControlName="accountId" class="form-control">
+          <option value="" disabled>Selecione...</option>
+          @for (acc of accounts(); track acc.id) {
+            <option [value]="acc.id">{{ acc.name }}</option>
+          }
+        </select>
+        @if (form.controls.accountId.touched && form.controls.accountId.hasError('required')) {
+          <span class="form-error">Conta é obrigatória</span>
+        }
+      </div>
+    </div>
+
+    @if (form.controls.frequency.value === 'monthly' || form.controls.frequency.value === 'yearly') {
+      <div class="form-group">
+        <label for="rec-day">Dia do mês</label>
+        <input
+          id="rec-day"
+          type="number"
+          formControlName="dayOfMonth"
+          class="form-control"
+          placeholder="Ex: 5, 10, 25..."
+          min="1"
+          max="31"
+        />
+      </div>
+    }
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="rec-start">Data de Início</label>
+        <input
+          id="rec-start"
+          type="date"
+          formControlName="startDate"
+          class="form-control"
+        />
+        @if (form.controls.startDate.touched && form.controls.startDate.hasError('required')) {
+          <span class="form-error">Data de início é obrigatória</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="rec-end">Data de Fim (opcional)</label>
+        <input
+          id="rec-end"
+          type="date"
+          formControlName="endDate"
+          class="form-control"
+        />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="rec-status">Status padrão das transações</label>
+      <select id="rec-status" formControlName="status" class="form-control">
+        <option value="settled">Efetivada</option>
+        <option value="pending">Pendente</option>
+      </select>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="closeModal()">Cancelar</button>
+      <button type="submit" class="btn-save" [disabled]="form.invalid">
+        {{ editingRecurrence() ? 'Salvar Alterações' : 'Adicionar' }}
+      </button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- Delete Confirmation Modal -->
+<app-modal
+  [isOpen]="showDeleteConfirm()"
+  title="Confirmar Exclusão"
+  (close)="cancelDelete()"
+>
+  <div class="delete-confirm">
+    <p>Tem certeza que deseja excluir esta recorrência?</p>
+    <p class="delete-warning">As transações já geradas não serão removidas. Esta ação não pode ser desfeita.</p>
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="cancelDelete()">Cancelar</button>
+      <button type="button" class="btn-danger" (click)="executeDelete()">Excluir</button>
+    </div>
+  </div>
+</app-modal>

@@ -34,9 +34,7 @@
   }
 }
 
-.btn-income,
-.btn-expense,
-.btn-transfer {
+.btn-primary {
   padding: 10px 20px;
   border-radius: var(--radius-sm);
   font-weight: 600;
@@ -45,58 +43,14 @@
   transition: all 0.2s ease;
   border: none;
   white-space: nowrap;
+  background: var(--accent-gradient);
+  color: #fff;
 
   @include focus-ring;
-}
-
-.btn-income {
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--income);
-  border: 1px solid rgba(16, 185, 129, 0.3);
 
   &:hover {
-    background: rgba(16, 185, 129, 0.25);
     transform: translateY(-1px);
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
-  }
-}
-
-.btn-expense {
-  background: rgba(244, 63, 94, 0.15);
-  color: var(--expense);
-  border: 1px solid rgba(244, 63, 94, 0.3);
-
-  &:hover {
-    background: rgba(244, 63, 94, 0.25);
-    transform: translateY(-1px);
-    box-shadow: 0 0 16px rgba(244, 63, 94, 0.2);
-  }
-}
-
-.btn-transfer {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--transfer);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-
-  &:hover {
-    background: rgba(59, 130, 246, 0.25);
-    transform: translateY(-1px);
-    box-shadow: 0 0 16px rgba(59, 130, 246, 0.2);
-  }
-}
-
-// =============================
-// Summary Section
-// =============================
-
-.summary-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
-
-  @include tablet {
-    gap: 20px;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
   }
 }
 
@@ -113,7 +67,6 @@
   @include tablet {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
   }
 }
 
@@ -164,37 +117,8 @@
   }
 }
 
-.search-input {
-  padding: 10px 16px;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text);
-  font-size: 0.875rem;
-  font-family: 'DM Sans', sans-serif;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 100%;
-
-  @include focus-ring;
-
-  &::placeholder {
-    color: var(--text-muted);
-  }
-
-  &:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-bg), 0 0 16px rgba(124, 58, 237, 0.1);
-    outline: none;
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  @include tablet {
-    width: 280px;
-  }
-}
-
 // =============================
-// Transactions Table (Desktop)
+// Recurrences Table (Desktop)
 // =============================
 
 .table-container {
@@ -207,7 +131,7 @@
   }
 }
 
-.transactions-table {
+.recurrences-table {
   width: 100%;
   border-collapse: collapse;
 
@@ -241,6 +165,10 @@
     &:last-child td {
       border-bottom: none;
     }
+
+    &.paused {
+      opacity: 0.6;
+    }
   }
 
   .text-right {
@@ -252,43 +180,35 @@
   }
 }
 
-.status-badge {
+.status-indicator {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-
-  &.settled {
-    background: var(--income-bg);
-  }
-
-  &.pending {
-    background: var(--warning-bg);
-  }
-
-  &.transfer {
-    background: var(--transfer-bg);
-  }
+  font-size: 1rem;
 }
 
-.date-cell {
-  white-space: nowrap;
-  color: var(--text-secondary);
-  font-size: 0.8125rem;
+.type-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.income {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--income);
+  }
+
+  &.expense {
+    background: rgba(244, 63, 94, 0.15);
+    color: var(--expense);
+  }
 }
 
 .description-cell {
   font-weight: 500;
-  max-width: 240px;
+  max-width: 200px;
   @include truncate;
-}
-
-.recurring-icon {
-  font-size: 0.75rem;
-  margin-right: 2px;
 }
 
 .category-cell {
@@ -298,6 +218,17 @@
 .account-cell {
   white-space: nowrap;
   color: var(--text-secondary);
+}
+
+.frequency-cell {
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.date-cell {
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
 }
 
 .amount {
@@ -311,16 +242,6 @@
   &.expense {
     color: var(--expense);
   }
-
-  &.transfer {
-    color: var(--transfer);
-  }
-}
-
-.transfer-label {
-  color: var(--transfer);
-  font-weight: 500;
-  white-space: nowrap;
 }
 
 .actions {
@@ -352,6 +273,10 @@
   &.btn-delete:hover {
     background: var(--danger-bg);
   }
+
+  &.btn-toggle:hover {
+    background: var(--surface-hover);
+  }
 }
 
 // =============================
@@ -368,7 +293,7 @@
   }
 }
 
-.transaction-card {
+.recurrence-card {
   @include card;
   padding: 14px 16px;
   display: flex;
@@ -383,8 +308,8 @@
     border-left: 3px solid var(--expense);
   }
 
-  &.transfer-card {
-    border-left: 3px solid var(--transfer);
+  &.paused-card {
+    opacity: 0.6;
   }
 }
 
@@ -429,17 +354,34 @@
   @include truncate;
 }
 
+.card-frequency {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
 .card-right {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
-.card-date {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+.card-type-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+
+  &.income {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--income);
+  }
+
+  &.expense {
+    background: rgba(244, 63, 94, 0.15);
+    color: var(--expense);
+  }
 }
 
 .card-actions {
@@ -462,6 +404,10 @@
 
     &.btn-delete:hover {
       color: var(--danger);
+    }
+
+    &.btn-toggle:hover {
+      color: var(--accent);
     }
   }
 }
@@ -534,16 +480,6 @@ select.form-control {
   font-size: 0.75rem;
   color: var(--danger);
   font-weight: 500;
-}
-
-.form-warning {
-  font-size: 0.8125rem;
-  color: var(--warning);
-  font-weight: 500;
-  padding: 8px 12px;
-  background: var(--warning-bg);
-  border-radius: var(--radius-xs);
-  margin-bottom: 16px;
 }
 
 .form-actions {
@@ -633,7 +569,7 @@ select.form-control {
 
   .delete-warning {
     font-size: 0.8125rem;
-    color: var(--danger);
+    color: var(--text-secondary);
     font-weight: 500;
     margin-bottom: 0;
   }
