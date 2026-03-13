@@ -19,37 +19,40 @@
 }
 
 .btn-primary {
-  background: var(--accent);
+  background: var(--accent-gradient);
   color: #fff;
   padding: 10px 20px;
   border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.875rem;
-  transition: background 0.2s;
+  transition: all var(--transition-fast);
   @include focus-ring;
 
   &:hover {
-    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 }
 
 .btn-secondary {
-  background: var(--surface-hover);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
   color: var(--text-secondary);
   padding: 10px 20px;
   border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.875rem;
-  transition: background 0.2s;
+  transition: all var(--transition-fast);
   @include focus-ring;
 
   &:hover {
-    background: var(--border);
+    background: var(--surface-hover);
+    color: var(--text);
   }
 }
 
@@ -66,8 +69,9 @@
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--surface);
-  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   @include focus-ring;
 
   &:hover {
@@ -76,8 +80,10 @@
   }
 
   &.active {
-    background: var(--accent);
-    color: #fff;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.15);
   }
 }
 
@@ -191,12 +197,12 @@
 .form-input {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-xs);
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   font-size: 0.9rem;
-  transition: border-color 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &::placeholder {
     color: var(--text-muted);
@@ -205,13 +211,16 @@
   &:focus {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+    background: rgba(255, 255, 255, 0.06);
   }
 }
 
 // Type Toggle
 .type-toggle {
   display: flex;
-  background: var(--surface-hover);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-xs);
   padding: 4px;
   cursor: pointer;
@@ -284,15 +293,16 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  transition: transform 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 
   &:hover {
     transform: scale(1.15);
+    box-shadow: 0 0 10px currentColor;
   }
 
   &.active {
-    box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px currentColor;
+    box-shadow: 0 0 0 3px var(--surface-solid), 0 0 0 5px currentColor, 0 0 12px currentColor;
     transform: scale(1.1);
   }
 }

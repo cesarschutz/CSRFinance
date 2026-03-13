@@ -69,18 +69,24 @@ import { FileService } from '../../core/services/file.service';
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: linear-gradient(180deg, var(--bg) 0%, #E4E6F0 100%);
+      background: var(--bg);
+      background-image: var(--bg-gradient);
       padding: 24px;
+      position: relative;
+      overflow: hidden;
     }
 
     .welcome-card {
-      background: var(--surface);
+      background: var(--surface-solid);
+      border: 1px solid var(--glass-border);
       border-radius: var(--radius);
-      box-shadow: var(--shadow-lg);
-      padding: 40px 28px;
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+      padding: 40px 32px;
       max-width: 440px;
       width: 100%;
       text-align: center;
+      position: relative;
+      z-index: 1;
       animation: slideUp 0.4s ease-out;
 
       @include tablet {
@@ -118,13 +124,17 @@ import { FileService } from '../../core/services/file.service';
     }
 
     .logo-icon {
-      font-size: 2rem;
+      font-size: 2.5rem;
+      filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.5));
     }
 
     .logo-text {
       font-size: 1.75rem;
       font-weight: 800;
-      color: var(--text);
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin: 0;
       letter-spacing: -0.5px;
     }
@@ -178,36 +188,31 @@ import { FileService } from '../../core/services/file.service';
       font-weight: 600;
       font-family: 'DM Sans', sans-serif;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       border: 2px solid transparent;
     }
 
     .btn-primary {
-      background: var(--accent);
+      background: var(--accent-gradient);
       color: #fff;
-      border-color: var(--accent);
+      border-color: transparent;
 
       &:hover {
-        background: var(--accent-hover);
-        border-color: var(--accent-hover);
-        box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
-        transform: translateY(-1px);
-      }
-
-      &:active {
-        transform: translateY(0);
+        transform: translateY(-2px);
+        box-shadow: 0 0 30px rgba(124, 58, 237, 0.4);
       }
     }
 
     .btn-secondary {
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.04);
       color: var(--text);
-      border-color: var(--border);
+      border-color: var(--glass-border);
 
       &:hover {
         border-color: var(--accent);
         color: var(--accent);
         background: var(--accent-bg);
+        box-shadow: var(--shadow-glow);
       }
     }
 
@@ -222,7 +227,7 @@ import { FileService } from '../../core/services/file.service';
         content: '';
         flex: 1;
         height: 1px;
-        background: var(--border);
+        background: var(--glass-border);
       }
     }
 
@@ -233,7 +238,7 @@ import { FileService } from '../../core/services/file.service';
       margin-top: 20px;
       padding: 10px 16px;
       background: var(--danger-bg);
-      border: 1px solid rgba(255, 107, 107, 0.3);
+      border: 1px solid rgba(239, 68, 68, 0.2);
       border-radius: var(--radius-xs);
       color: var(--danger);
       font-size: 0.8125rem;
@@ -254,7 +259,7 @@ import { FileService } from '../../core/services/file.service';
       border-radius: 4px;
 
       &:hover {
-        background: rgba(255, 107, 107, 0.15);
+        background: rgba(239, 68, 68, 0.15);
       }
     }
 
@@ -262,6 +267,8 @@ import { FileService } from '../../core/services/file.service';
       margin-top: 24px;
       color: var(--text-muted);
       font-size: 0.75rem;
+      position: relative;
+      z-index: 1;
     }
   `],
 })

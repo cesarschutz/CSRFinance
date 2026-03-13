@@ -21,6 +21,34 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+  }
+
+  &.card-balance::before {
+    background: var(--accent-gradient);
+  }
+
+  &.card-income::before {
+    background: var(--income);
+  }
+
+  &.card-expense::before {
+    background: var(--expense);
+  }
+
+  &.card-neutral::before {
+    background: var(--text-muted);
+  }
 
   @include tablet {
     padding: 20px;

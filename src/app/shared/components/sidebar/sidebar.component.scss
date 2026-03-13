@@ -2,13 +2,16 @@
   width: var(--sidebar-width);
   height: 100vh;
   background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg-end) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
   position: fixed;
   left: 0;
   top: 0;
   z-index: 100;
-  transition: width 0.3s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 
   &.collapsed {
@@ -21,7 +24,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
 }
 
@@ -33,14 +36,18 @@
 
 .logo-icon {
   font-size: 1.5rem;
+  filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.4));
 }
 
 .logo-text {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: #fff;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   white-space: nowrap;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.02em;
 }
 
 .collapse-btn {
@@ -52,11 +59,11 @@
   justify-content: center;
   color: var(--sidebar-text);
   font-size: 1rem;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 
   &:hover {
     background: var(--sidebar-hover);
-    color: #fff;
+    color: var(--sidebar-text-active);
   }
 }
 
@@ -77,8 +84,9 @@
   color: var(--sidebar-text);
   font-size: 0.875rem;
   font-weight: 500;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
   white-space: nowrap;
+  position: relative;
 
   &:hover {
     background: var(--sidebar-hover);
@@ -89,6 +97,18 @@
     background: var(--sidebar-active);
     color: var(--sidebar-text-active);
     font-weight: 600;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 20px;
+      background: var(--accent-gradient);
+      border-radius: 0 4px 4px 0;
+    }
   }
 }
 
@@ -102,7 +122,7 @@
 .sidebar-accounts {
   flex: 1;
   padding: 12px 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--glass-border);
   overflow-y: auto;
   min-height: 0;
 
@@ -127,7 +147,7 @@
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--sidebar-text);
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -139,8 +159,8 @@
   padding: 8px 12px;
   border-radius: var(--radius-xs);
   color: var(--sidebar-text);
-  font-size: 0.8125rem;
-  transition: all 0.15s;
+  font-size: 0.85rem;
+  transition: all var(--transition-fast);
   white-space: nowrap;
 
   &:hover {
@@ -163,6 +183,7 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
 }
 
 .account-name {
@@ -173,8 +194,8 @@
 }
 
 .account-balance {
-  font-size: 0.75rem;
-  color: var(--sidebar-text);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
   flex-shrink: 0;
   opacity: 0.8;
 }
@@ -189,39 +210,42 @@
   color: var(--accent);
   font-size: 0.8125rem;
   font-weight: 500;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
   margin-top: 4px;
   opacity: 0.85;
 
   &:hover {
-    background: var(--sidebar-hover);
+    background: var(--accent-bg);
     opacity: 1;
   }
 }
 
 .sidebar-footer {
   padding: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
   gap: 4px;
   white-space: nowrap;
   flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(124, 58, 237, 0.05);
 }
 
 .footer-label {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--sidebar-text);
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .footer-value {
   font-size: 1.15rem;
-  color: #fff;
   font-weight: 700;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .footer-icon {
