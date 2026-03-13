@@ -33,13 +33,15 @@ import { FileBarComponent } from '../../shared/components/file-bar/file-bar.comp
       display: block;
       min-height: 100vh;
       background: var(--bg);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
     }
 
     .main-content {
       min-height: 100vh;
       padding: 16px;
       padding-bottom: 80px;
-      transition: margin-left 0.3s ease, padding 0.3s ease;
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
       &.with-sidebar {
         margin-left: var(--sidebar-width);

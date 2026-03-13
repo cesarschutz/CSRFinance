@@ -23,10 +23,12 @@ import { Component, Input } from '@angular/core';
     .empty-icon {
       font-size: 3rem;
       margin-bottom: 16px;
+      filter: grayscale(0.3);
+      opacity: 0.7;
     }
 
     h4 {
-      color: var(--text);
+      color: var(--text-secondary);
       margin-bottom: 8px;
       font-size: 1.125rem;
     }

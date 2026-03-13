@@ -108,13 +108,17 @@ export class DashboardComponent {
         {
           label: 'Receitas',
           data: monthlyTotals.map(m => m.income),
-          backgroundColor: '#00B894',
+          backgroundColor: 'rgba(16, 185, 129, 0.7)',
+          borderColor: '#10B981',
+          borderWidth: 1,
           borderRadius: 6,
         },
         {
           label: 'Despesas',
           data: monthlyTotals.map(m => m.expense),
-          backgroundColor: '#E84393',
+          backgroundColor: 'rgba(244, 63, 94, 0.7)',
+          borderColor: '#F43F5E',
+          borderWidth: 1,
           borderRadius: 6,
         },
       ],
@@ -131,9 +135,15 @@ export class DashboardComponent {
           usePointStyle: true,
           padding: 20,
           font: { family: "'DM Sans', sans-serif", size: 12 },
+          color: '#94A3B8',
         },
       },
       tooltip: {
+        backgroundColor: 'rgba(21, 27, 46, 0.95)',
+        borderColor: 'rgba(255, 255, 255, 0.06)',
+        borderWidth: 1,
+        titleColor: '#F1F5F9',
+        bodyColor: '#94A3B8',
         callbacks: {
           label: (ctx) => {
             const value = ctx.parsed.y ?? 0;
@@ -151,13 +161,15 @@ export class DashboardComponent {
         grid: { display: false },
         ticks: {
           font: { family: "'DM Sans', sans-serif", size: 12 },
+          color: '#64748B',
         },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(0,0,0,0.06)' },
+        grid: { color: 'rgba(255, 255, 255, 0.04)' },
         ticks: {
           font: { family: "'Space Mono', monospace", size: 11 },
+          color: '#64748B',
           callback: (value) => {
             return new Intl.NumberFormat('pt-BR', {
               style: 'currency',

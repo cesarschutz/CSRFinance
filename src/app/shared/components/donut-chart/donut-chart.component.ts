@@ -66,6 +66,11 @@ export class DonutChartComponent implements OnChanges {
     plugins: {
       legend: { display: false },
       tooltip: {
+        backgroundColor: 'rgba(21, 27, 46, 0.95)',
+        borderColor: 'rgba(255, 255, 255, 0.06)',
+        borderWidth: 1,
+        titleColor: '#F1F5F9',
+        bodyColor: '#94A3B8',
         callbacks: {
           label: (ctx) => {
             const value = ctx.parsed;

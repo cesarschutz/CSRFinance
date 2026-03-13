@@ -50,32 +50,38 @@
 }
 
 .btn-income {
-  background: var(--income);
-  color: #fff;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--income);
+  border: 1px solid rgba(16, 185, 129, 0.3);
 
   &:hover {
-    background: #00a884;
+    background: rgba(16, 185, 129, 0.25);
     transform: translateY(-1px);
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
   }
 }
 
 .btn-expense {
-  background: var(--expense);
-  color: #fff;
+  background: rgba(244, 63, 94, 0.15);
+  color: var(--expense);
+  border: 1px solid rgba(244, 63, 94, 0.3);
 
   &:hover {
-    background: #d63384;
+    background: rgba(244, 63, 94, 0.25);
     transform: translateY(-1px);
+    box-shadow: 0 0 16px rgba(244, 63, 94, 0.2);
   }
 }
 
 .btn-transfer {
-  background: #0984E3;
-  color: #fff;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--transfer);
+  border: 1px solid rgba(59, 130, 246, 0.3);
 
   &:hover {
-    background: #0773c5;
+    background: rgba(59, 130, 246, 0.25);
     transform: translateY(-1px);
+    box-shadow: 0 0 16px rgba(59, 130, 246, 0.2);
   }
 }
 
@@ -114,10 +120,10 @@
 .filter-tabs {
   display: flex;
   gap: 0;
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   padding: 4px;
-  box-shadow: var(--shadow-sm);
 }
 
 .filter-tab {
@@ -160,13 +166,13 @@
 
 .search-input {
   padding: 10px 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--text);
   font-size: 0.875rem;
   font-family: 'DM Sans', sans-serif;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
 
   @include focus-ring;
@@ -177,8 +183,9 @@
 
   &:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-bg);
+    box-shadow: 0 0 0 3px var(--accent-bg), 0 0 16px rgba(124, 58, 237, 0.1);
     outline: none;
+    background: rgba(255, 255, 255, 0.05);
   }
 
   @include tablet {
@@ -263,7 +270,7 @@
   }
 
   &.transfer {
-    background: rgba(9, 132, 227, 0.1);
+    background: var(--transfer-bg);
   }
 }
 
@@ -301,12 +308,12 @@
   }
 
   &.transfer {
-    color: #0984E3;
+    color: var(--transfer);
   }
 }
 
 .transfer-label {
-  color: #0984E3;
+  color: var(--transfer);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -372,7 +379,7 @@
   }
 
   &.transfer-card {
-    border-left: 3px solid #0984E3;
+    border-left: 3px solid var(--transfer);
   }
 }
 
@@ -473,19 +480,20 @@
 
 .form-control {
   padding: 10px 14px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-xs);
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   font-size: 0.875rem;
   font-family: 'DM Sans', sans-serif;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
 
   &:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-bg);
     outline: none;
+    background: rgba(255, 255, 255, 0.06);
   }
 
   &::placeholder {
@@ -496,7 +504,7 @@
 select.form-control {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7194' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394A3B8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 32px;
@@ -525,10 +533,10 @@ select.form-control {
 
 .form-warning {
   font-size: 0.8125rem;
-  color: #e17055;
+  color: var(--warning);
   font-weight: 500;
   padding: 8px 12px;
-  background: rgba(225, 112, 85, 0.1);
+  background: var(--warning-bg);
   border-radius: var(--radius-xs);
   margin-bottom: 16px;
 }
@@ -542,20 +550,21 @@ select.form-control {
 
 .btn-cancel {
   padding: 10px 24px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text-secondary);
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
 
   @include focus-ring;
 
   &:hover {
     background: var(--surface-hover);
     color: var(--text);
+    border-color: rgba(255, 255, 255, 0.12);
   }
 }
 
@@ -563,22 +572,22 @@ select.form-control {
   padding: 10px 24px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--accent);
+  background: var(--accent-gradient);
   color: #fff;
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
 
   @include focus-ring;
 
   &:hover:not(:disabled) {
-    background: var(--accent-hover);
     transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 }
@@ -587,18 +596,20 @@ select.form-control {
   padding: 10px 24px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--danger);
-  color: #fff;
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
 
   @include focus-ring;
 
   &:hover {
-    background: darken(#FF6B6B, 10%);
+    background: rgba(239, 68, 68, 0.3);
     transform: translateY(-1px);
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.2);
   }
 }
 

@@ -168,12 +168,12 @@ export class ReportsComponent {
         {
           label: 'Despesas',
           data,
-          borderColor: '#E84393',
-          backgroundColor: 'rgba(232, 67, 147, 0.1)',
+          borderColor: '#F43F5E',
+          backgroundColor: 'rgba(244, 63, 94, 0.1)',
           fill: true,
           tension: 0.3,
-          pointBackgroundColor: '#E84393',
-          pointBorderColor: '#FFFFFF',
+          pointBackgroundColor: '#F43F5E',
+          pointBorderColor: '#151B2E',
           pointBorderWidth: 2,
           pointRadius: 3,
           pointHoverRadius: 6,
@@ -188,6 +188,11 @@ export class ReportsComponent {
     plugins: {
       legend: { display: false },
       tooltip: {
+        backgroundColor: 'rgba(21, 27, 46, 0.95)',
+        borderColor: 'rgba(255, 255, 255, 0.06)',
+        borderWidth: 1,
+        titleColor: '#F1F5F9',
+        bodyColor: '#94A3B8',
         callbacks: {
           title: (items) => `Dia ${items[0].label}`,
           label: (ctx) => {
@@ -206,14 +211,16 @@ export class ReportsComponent {
         grid: { display: false },
         ticks: {
           font: { family: "'DM Sans', sans-serif", size: 11 },
+          color: '#64748B',
           maxTicksLimit: 15,
         },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(0,0,0,0.06)' },
+        grid: { color: 'rgba(255, 255, 255, 0.04)' },
         ticks: {
           font: { family: "'Space Mono', monospace", size: 11 },
+          color: '#64748B',
           callback: (value) => {
             return new Intl.NumberFormat('pt-BR', {
               style: 'currency',
@@ -256,13 +263,17 @@ export class ReportsComponent {
         {
           label: 'Receitas',
           data: balances.map(b => b.income),
-          backgroundColor: '#00B894',
+          backgroundColor: 'rgba(16, 185, 129, 0.7)',
+          borderColor: '#10B981',
+          borderWidth: 1,
           borderRadius: 6,
         },
         {
           label: 'Despesas',
           data: balances.map(b => b.expense),
-          backgroundColor: '#E84393',
+          backgroundColor: 'rgba(244, 63, 94, 0.7)',
+          borderColor: '#F43F5E',
+          borderWidth: 1,
           borderRadius: 6,
         },
       ],
@@ -279,15 +290,22 @@ export class ReportsComponent {
           usePointStyle: true,
           padding: 20,
           font: { family: "'DM Sans', sans-serif", size: 12 },
+          color: '#94A3B8',
         },
       },
       tooltip: {
+        backgroundColor: 'rgba(21, 27, 46, 0.95)',
+        borderColor: 'rgba(255, 255, 255, 0.06)',
+        borderWidth: 1,
+        titleColor: '#F1F5F9',
+        bodyColor: '#94A3B8',
         callbacks: {
           label: (ctx) => {
             const value = ctx.parsed.y;
             const formatted = new Intl.NumberFormat('pt-BR', {
               style: 'currency',
               currency: 'BRL',
+              maximumFractionDigits: 0,
             }).format(value ?? 0);
             return `${ctx.dataset.label}: ${formatted}`;
           },
@@ -299,13 +317,15 @@ export class ReportsComponent {
         grid: { display: false },
         ticks: {
           font: { family: "'DM Sans', sans-serif", size: 12 },
+          color: '#64748B',
         },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(0,0,0,0.06)' },
+        grid: { color: 'rgba(255, 255, 255, 0.04)' },
         ticks: {
           font: { family: "'Space Mono', monospace", size: 11 },
+          color: '#64748B',
           callback: (value) => {
             return new Intl.NumberFormat('pt-BR', {
               style: 'currency',

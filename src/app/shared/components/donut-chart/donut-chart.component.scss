@@ -53,6 +53,7 @@
 .donut-center-value {
   font-size: 1.1rem;
   color: var(--text);
+  text-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
 
   @include tablet {
     font-size: 1.25rem;

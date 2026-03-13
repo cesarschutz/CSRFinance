@@ -50,8 +50,10 @@ import { FileService, FileStatus } from '../../../core/services/file.service';
       align-items: center;
       justify-content: space-between;
       padding: 8px 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
       border-radius: var(--radius-sm);
       margin-bottom: 20px;
       font-size: 0.8125rem;
@@ -97,8 +99,8 @@ import { FileService, FileStatus } from '../../../core/services/file.service';
       }
 
       &.status-saving {
-        background: rgba(253, 203, 110, 0.2);
-        color: #B8860B;
+        background: var(--warning-bg);
+        color: var(--warning);
       }
 
       &.status-unsaved {

@@ -37,20 +37,28 @@
 }
 
 // ======================
-// UI Helpers
+// UI Helpers — Aurora Glass
 // ======================
 
-@mixin card {
-  background: var(--surface);
+@mixin glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all var(--transition-base);
+}
+
+@mixin card {
+  @include glass-card;
 }
 
 @mixin card-hover {
   &:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    background: var(--surface-hover);
+    border-color: var(--border-glow);
+    box-shadow: var(--shadow-glow);
   }
 }
 
@@ -77,4 +85,11 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+}
+
+@mixin gradient-text {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

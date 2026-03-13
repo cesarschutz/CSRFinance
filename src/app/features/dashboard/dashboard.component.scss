@@ -154,11 +154,11 @@
   @include money-value(0.9rem);
 
   &.value-income {
-    color: #00B894;
+    color: var(--income);
   }
 
   &.value-expense {
-    color: #E84393;
+    color: var(--expense);
   }
 }
 
@@ -218,11 +218,11 @@
   flex-shrink: 0;
 
   &.value-income {
-    color: #00B894;
+    color: var(--income);
   }
 
   &.value-expense {
-    color: #E84393;
+    color: var(--expense);
   }
 }
 

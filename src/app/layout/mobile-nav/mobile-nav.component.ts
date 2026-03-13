@@ -31,8 +31,10 @@ interface NavItem {
       bottom: 0;
       left: 0;
       right: 0;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
+      background: rgba(11, 15, 26, 0.9);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
       display: flex;
       justify-content: space-around;
       padding: 8px 0;
@@ -45,20 +47,26 @@ interface NavItem {
       flex-direction: column;
       align-items: center;
       gap: 2px;
-      padding: 4px 12px;
+      padding: 6px 12px;
       border-radius: var(--radius-xs);
       color: var(--text-muted);
       font-size: 0.65rem;
       font-weight: 500;
-      transition: color 0.15s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
 
       &.active {
         color: var(--accent);
+
+        .mobile-nav-icon {
+          filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.5));
+        }
       }
     }
 
     .mobile-nav-icon {
       font-size: 1.25rem;
+      transition: filter 0.2s;
     }
   `],
 })
