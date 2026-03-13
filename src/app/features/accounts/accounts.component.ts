@@ -6,6 +6,7 @@ import { TransactionService } from '../../core/services/transaction.service';
 import { Account } from '../../core/models/account.model';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { CurrencyInputComponent } from '../../shared/components/currency-input/currency-input.component';
 import { CurrencyBrlPipe } from '../../shared/pipes/currency-brl.pipe';
 
 const PRESET_COLORS = [
@@ -18,7 +19,7 @@ const PRESET_COLORS = [
 @Component({
   selector: 'app-accounts',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, EmptyStateComponent, CurrencyBrlPipe],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, EmptyStateComponent, CurrencyInputComponent, CurrencyBrlPipe],
   templateUrl: './accounts.component.html',
   styleUrl: './accounts.component.scss',
 })
@@ -102,7 +103,14 @@ export class AccountsComponent {
   }
 
   deleteAccount(account: Account): void {
-    if (confirm(`Tem certeza que deseja excluir a conta "${account.name}"?`)) {
+    const txnCount = this.transactionService.transactions()
+      .filter(t => t.accountId === account.id).length;
+
+    const message = txnCount > 0
+      ? `A conta "${account.name}" possui ${txnCount} transação(ões) vinculada(s). Excluir a conta não remove as transações. Deseja continuar?`
+      : `Tem certeza que deseja excluir a conta "${account.name}"?`;
+
+    if (confirm(message)) {
       this.accountService.delete(account.id);
     }
   }

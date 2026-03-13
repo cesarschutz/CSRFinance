@@ -225,7 +225,7 @@
                   [class.income]="transactionForm.value.type === 'income'">
               R$
             </span>
-            <input type="number" formControlName="amount" class="amount-input" placeholder="0,00" step="0.01">
+            <app-currency-input formControlName="amount" cssClass="amount-input" placeholder="0,00"></app-currency-input>
           </div>
         </div>
 
@@ -355,7 +355,7 @@
           <div class="amount-input-group">
             <span class="field-icon">💳</span>
             <span class="currency-symbol transfer">R$</span>
-            <input type="number" formControlName="amount" class="amount-input" placeholder="0,00" step="0.01">
+            <app-currency-input formControlName="amount" cssClass="amount-input" placeholder="0,00"></app-currency-input>
           </div>
         </div>
 

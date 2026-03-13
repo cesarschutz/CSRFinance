@@ -2,6 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CategoryService } from '../../core/services/category.service';
+import { TransactionService } from '../../core/services/transaction.service';
 import { Category, CategoryType } from '../../core/models/category.model';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -46,6 +47,7 @@ const PRESET_COLORS = [
 })
 export class CategoriesComponent {
   private categoryService = inject(CategoryService);
+  private transactionService = inject(TransactionService);
   private fb = inject(FormBuilder);
 
   filterType = signal<FilterType>('all');
@@ -132,7 +134,14 @@ export class CategoriesComponent {
   }
 
   deleteCategory(category: Category): void {
-    if (confirm(`Tem certeza que deseja excluir a categoria "${category.name}"?`)) {
+    const txnCount = this.transactionService.transactions()
+      .filter(t => t.categoryId === category.id).length;
+
+    const message = txnCount > 0
+      ? `A categoria "${category.name}" possui ${txnCount} transação(ões) vinculada(s). Deseja realmente excluir?`
+      : `Tem certeza que deseja excluir a categoria "${category.name}"?`;
+
+    if (confirm(message)) {
       this.categoryService.delete(category.id);
     }
   }

@@ -151,7 +151,7 @@ export class TransactionService {
   add(transaction: Omit<Transaction, 'id' | 'createdAt'>): Transaction {
     const newTxn: Transaction = {
       ...transaction,
-      id: 'txn-' + Date.now(),
+      id: 'txn-' + crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
     this.transactionsSignal.update(txns => [...txns, newTxn]);
@@ -166,11 +166,11 @@ export class TransactionService {
     date: string;
     description: string;
   }): void {
-    const transferId = 'trf-' + Date.now();
+    const transferId = 'trf-' + crypto.randomUUID();
     const now = new Date().toISOString();
 
     const outgoing: Transaction = {
-      id: 'txn-' + Date.now(),
+      id: 'txn-' + crypto.randomUUID(),
       description: data.description,
       amount: data.amount,
       type: 'transfer',
@@ -184,7 +184,7 @@ export class TransactionService {
     };
 
     const incoming: Transaction = {
-      id: 'txn-' + (Date.now() + 1),
+      id: 'txn-' + crypto.randomUUID(),
       description: data.description,
       amount: data.amount,
       type: 'transfer',
@@ -253,7 +253,7 @@ export class TransactionService {
       return;
     }
 
-    const recurringId = 'rec-' + Date.now();
+    const recurringId = 'rec-' + crypto.randomUUID();
     const count = isFixed ? 60 : (data.repeatCount || 2); // 60 months for fixed
     const frequency = data.repeatFrequency || 'monthly';
     const dates = this.generateDates(data.date, frequency, count);
@@ -266,7 +266,7 @@ export class TransactionService {
       
       return {
         ...data,
-        id: 'txn-' + Date.now() + '-' + index,
+        id: 'txn-' + crypto.randomUUID(),
         createdAt: nowStr,
         date: dateStr,
         status,

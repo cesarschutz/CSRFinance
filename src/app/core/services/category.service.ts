@@ -44,7 +44,7 @@ export class CategoryService {
   add(category: Omit<Category, 'id'>): Category {
     const newCat: Category = {
       ...category,
-      id: 'cat-' + Date.now(),
+      id: 'cat-' + crypto.randomUUID(),
     };
     this.categoriesSignal.update(cats => [...cats, newCat]);
     this.save();

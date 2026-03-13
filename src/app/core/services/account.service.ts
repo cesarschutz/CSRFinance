@@ -46,7 +46,7 @@ export class AccountService {
   add(account: Omit<Account, 'id' | 'createdAt'>): Account {
     const newAcc: Account = {
       ...account,
-      id: 'acc-' + Date.now(),
+      id: 'acc-' + crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
     this.accountsSignal.update(accs => [...accs, newAcc]);

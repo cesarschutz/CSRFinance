@@ -38,7 +38,7 @@ export class FileService implements OnDestroy {
   readonly isFileSystemAccessSupported = 'showSaveFilePicker' in window;
 
   // File handle (File System Access API)
-  private fileHandle: any = null;
+  private fileHandle: FileSystemFileHandle | null = null;
 
   // Auto-save guard
   private suppressAutoSave = false;
@@ -311,6 +311,9 @@ export class FileService implements OnDestroy {
       transferenciaId: t.transferId ?? '',
       contaTransferenciaId: t.transferAccountId ?? '',
       recorrenciaId: t.recurringId ?? '',
+      fixo: t.isFixed ?? false,
+      parcelaAtual: t.installmentCurrent ?? '',
+      parcelaTotal: t.installmentTotal ?? '',
     }));
     const wsTransactions = XLSX.utils.json_to_sheet(transactionRows);
     XLSX.utils.book_append_sheet(wb, wsTransactions, this.SHEET_TRANSACOES);
@@ -424,6 +427,9 @@ export class FileService implements OnDestroy {
       ...(r.transferenciaId ? { transferId: String(r.transferenciaId) } : {}),
       ...(r.contaTransferenciaId ? { transferAccountId: String(r.contaTransferenciaId) } : {}),
       ...(r.recorrenciaId ? { recurringId: String(r.recorrenciaId) } : {}),
+      ...(r.fixo === true || r.fixo === 'true' ? { isFixed: true } : {}),
+      ...(r.parcelaAtual != null && r.parcelaAtual !== '' ? { installmentCurrent: Number(r.parcelaAtual) } : {}),
+      ...(r.parcelaTotal != null && r.parcelaTotal !== '' ? { installmentTotal: Number(r.parcelaTotal) } : {}),
     }));
 
     // Sheet "Recorrências" (optional — backward compatible)

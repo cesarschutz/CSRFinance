@@ -1,4 +1,5 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -13,13 +14,23 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { CustomCalendarComponent } from '../../shared/components/custom-calendar/custom-calendar.component';
 import { CategorySelectComponent } from '../../shared/components/category-select/category-select.component';
+import { CurrencyInputComponent } from '../../shared/components/currency-input/currency-input.component';
 import { CurrencyBrlPipe } from '../../shared/pipes/currency-brl.pipe';
 
 import { Transaction, TransactionType, TransactionStatus } from '../../core/models/transaction.model';
-import { Category } from '../../core/models/category.model';
+import { Category, CategoryType } from '../../core/models/category.model';
 import { Account } from '../../core/models/account.model';
 
 type FilterType = 'all' | 'expense' | 'income' | 'transfer';
+
+interface EditScopePendingData {
+  id: string;
+  data: Partial<Transaction> & {
+    isRepeated?: boolean;
+    repeatCount?: number;
+    repeatFrequency?: 'monthly' | 'semiannual' | 'annual';
+  };
+}
 
 @Component({
   selector: 'app-transactions',
@@ -33,6 +44,7 @@ type FilterType = 'all' | 'expense' | 'income' | 'transfer';
     EmptyStateComponent,
     CustomCalendarComponent,
     CategorySelectComponent,
+    CurrencyInputComponent,
     CurrencyBrlPipe,
   ],
   templateUrl: './transactions.component.html',
@@ -44,6 +56,7 @@ export class TransactionsComponent implements OnInit {
   private accountService = inject(AccountService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   // State signals
   year = signal(new Date().getFullYear());
@@ -56,7 +69,7 @@ export class TransactionsComponent implements OnInit {
   showDeleteConfirm = signal(false);
   deletingTransaction = signal<Transaction | null>(null);
   showEditScopeModal = signal(false);
-  editScopePendingData = signal<any>(null);
+  editScopePendingData = signal<EditScopePendingData | null>(null);
 
   // Transaction Form
   transactionForm = new FormGroup({
@@ -164,7 +177,7 @@ export class TransactionsComponent implements OnInit {
     name: a.name,
     icon: '🏦',
     color: a.color,
-    type: 'expense' as any
+    type: 'expense' as CategoryType
   })));
 
   filteredCategories = computed(() => {
@@ -180,51 +193,65 @@ export class TransactionsComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.transactionForm.controls.type.valueChanges.subscribe(() => {
-      this.transactionForm.controls.categoryId.setValue('');
-    });
-    this.transactionForm.controls.isFixed.valueChanges.subscribe(isFixed => {
-      if (isFixed) {
-        this.transactionForm.controls.isRepeated.setValue(false);
-      }
-    });
-    this.transactionForm.controls.isRepeated.valueChanges.subscribe(isRepeated => {
-      if (isRepeated) {
-        this.transactionForm.controls.isFixed.setValue(false);
-      }
-    });
+    this.transactionForm.controls.type.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.transactionForm.controls.categoryId.setValue('');
+      });
 
-    this.transferForm.controls.isFixed.valueChanges.subscribe(isFixed => {
-      if (isFixed) {
-        this.transferForm.controls.isRepeated.setValue(false);
-      }
-    });
-    this.transferForm.controls.isRepeated.valueChanges.subscribe(isRepeated => {
-      if (isRepeated) {
-        this.transferForm.controls.isFixed.setValue(false);
-      }
-    });
+    this.transactionForm.controls.isFixed.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(isFixed => {
+        if (isFixed) {
+          this.transactionForm.controls.isRepeated.setValue(false);
+        }
+      });
+
+    this.transactionForm.controls.isRepeated.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(isRepeated => {
+        if (isRepeated) {
+          this.transactionForm.controls.isFixed.setValue(false);
+        }
+      });
+
+    this.transferForm.controls.isFixed.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(isFixed => {
+        if (isFixed) {
+          this.transferForm.controls.isRepeated.setValue(false);
+        }
+      });
+
+    this.transferForm.controls.isRepeated.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(isRepeated => {
+        if (isRepeated) {
+          this.transferForm.controls.isFixed.setValue(false);
+        }
+      });
 
     // Handle query params for auto-opening modals
-    this.route.queryParams.subscribe(params => {
-      const action = params['action'];
-      if (action) {
-        setTimeout(() => {
-          if (action === 'expense' || action === 'income') {
-            this.openNewTransaction(action);
-          } else if (action === 'transfer') {
-            this.openTransferModal();
-          }
-          // Clear query params so it doesn't re-open on refresh
-          this.router.navigate([], {
-            relativeTo: this.route,
-            queryParams: { action: null },
-            queryParamsHandling: 'merge',
-            replaceUrl: true
+    this.route.queryParams
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        const action = params['action'];
+        if (action) {
+          setTimeout(() => {
+            if (action === 'expense' || action === 'income') {
+              this.openNewTransaction(action);
+            } else if (action === 'transfer') {
+              this.openTransferModal();
+            }
+            this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: { action: null },
+              queryParamsHandling: 'merge',
+              replaceUrl: true
+            });
           });
-        });
-      }
-    });
+        }
+      });
   }
 
   onMonthChange(event: { year: number; month: number }): void {
@@ -405,47 +432,13 @@ export class TransactionsComponent implements OnInit {
       return;
     }
 
-    this.transactionService.addAdvanced({
+    this.transactionService.addTransfer({
       fromAccountId: v.fromAccountId,
       toAccountId: v.toAccountId,
       amount: v.amount!,
       date: v.date,
       description: v.description || 'Transferência entre contas',
-      isFixed: v.isFixed,
-      isRepeated: v.isRepeated,
-      repeatCount: v.repeatCount,
-      repeatFrequency: v.repeatFrequency,
-      type: 'transfer' as any,
-      categoryId: '',
-      accountId: v.fromAccountId,
-      status: 'settled', 
-      transferAccountId: v.toAccountId,
-      transferId: 'trf-' + Date.now() // This will actually be overwritten in addAdvanced which handles normal transfers weirdly. 
-      // Wait, TransactionService handles addTransfer specially right now. Let's fix addTransfer vs addAdvanced.
-    } as any);
-    // Actually addTransfer is specific. For recurrences, we'd need addAdvancedTransfer.
-    // Let's call standard addTransfer if no recurrence, otherwise adapt.
-    
-    if (!v.isFixed && !v.isRepeated) {
-      this.transactionService.addTransfer({
-        fromAccountId: v.fromAccountId,
-        toAccountId: v.toAccountId,
-        amount: v.amount!,
-        date: v.date,
-        description: v.description || 'Transferência entre contas',
-      });
-    } else {
-      // It's a recurring transfer. In our system, maybe we don't fully support recurring transfers yet.
-      // But we can approximate it by creating a recurring expense that acts as a transfer.
-      // The user wants it. Let's adapt addAdvanced for transfer! We will just pass type: 'transfer' and set transferAccountId.
-      // addAdvanced already handles standard insertion. But wait, transfers need TWO records. 
-      // I will leave addTransfer for single transfers, and show an alert for recurring transfers for now, 
-      // or implement it fully. Let's fully replace it with an alert since it's an edge case, 
-      // OR implement the mapping. Let's just create ONE side for now to test, actually let's skip recurring for transfers to be safe and use native addTransfer.
-      // Wait, I can pass the custom object to addAdvanced but it would only create one side.
-      // If we don't have addTransferAdvanced, I'll alert the user it's an upcoming feature, or just do native transfer.
-      alert('Transferências recorrentes foram registradas (Apenas 1 lado por enquanto).');
-    }
+    });
 
     this.closeTransferModal();
   }
