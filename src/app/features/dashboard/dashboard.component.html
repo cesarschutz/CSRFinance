@@ -108,6 +108,71 @@
     </section>
   }
 
+  <!-- Budget Progress -->
+  @if (hasBudgets()) {
+    <section class="budget-section">
+      <div class="section-header">
+        <h2 class="section-title">Orçamento do Mês</h2>
+        <span class="budget-overall" [class.ok]="budgetSummary().overallPercentage < 75" [class.warning]="budgetSummary().overallPercentage >= 75 && budgetSummary().overallPercentage < 100" [class.exceeded]="budgetSummary().overallPercentage >= 100">
+          {{ budgetSummary().overallPercentage }}% usado
+        </span>
+      </div>
+      <div class="budget-list">
+        @for (bp of budgetProgress(); track bp.budget.id) {
+          <div class="budget-item" [class]="'budget-' + bp.status">
+            <div class="budget-item-header">
+              <span class="budget-icon">{{ bp.categoryIcon }}</span>
+              <span class="budget-name">{{ bp.categoryName }}</span>
+              <span class="budget-values money">{{ bp.spent | currencyBrl }} / {{ bp.budget.amount | currencyBrl }}</span>
+            </div>
+            <div class="budget-bar-bg">
+              <div class="budget-bar" [style.width.%]="bp.percentage > 100 ? 100 : bp.percentage"></div>
+            </div>
+            <div class="budget-item-footer">
+              <span class="budget-remaining">Restam {{ bp.remaining | currencyBrl }}</span>
+              <span class="budget-percent">{{ bp.percentage }}%</span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Goals Progress -->
+  @if (hasGoals()) {
+    <section class="goals-section">
+      <div class="section-header">
+        <h2 class="section-title">Metas Financeiras</h2>
+      </div>
+      <div class="goals-grid">
+        @for (gp of goalsProgress(); track gp.goal.id) {
+          <div class="goal-card" [class]="'goal-' + gp.status">
+            <div class="goal-header">
+              <span class="goal-icon">{{ gp.goal.icon }}</span>
+              <div class="goal-info">
+                <span class="goal-name">{{ gp.goal.name }}</span>
+                <span class="goal-target money">Meta: {{ gp.goal.targetAmount | currencyBrl }}</span>
+              </div>
+              <span class="goal-percent">{{ gp.percentage }}%</span>
+            </div>
+            <div class="goal-bar-bg">
+              <div class="goal-bar" [style.width.%]="gp.percentage" [style.background]="gp.goal.color"></div>
+            </div>
+            <div class="goal-footer">
+              <span class="goal-current money">{{ gp.goal.currentAmount | currencyBrl }}</span>
+              @if (gp.monthlyNeeded > 0 && gp.status !== 'completed') {
+                <span class="goal-monthly">{{ gp.monthlyNeeded | currencyBrl }}/mês</span>
+              }
+              @if (gp.status === 'completed') {
+                <span class="goal-completed-badge">Conquistada!</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
   <!-- Charts Grid -->
   <div class="charts-grid">
     <div class="chart-card">

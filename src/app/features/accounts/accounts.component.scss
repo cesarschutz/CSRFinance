@@ -1,20 +1,18 @@
 @use 'assets/styles/mixins' as *;
 
 .accounts-page {
-  padding: 24px 16px;
-
-  @include tablet {
-    padding: 32px 24px;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 // Header
 .page-header {
   @include flex-between;
-  margin-bottom: 24px;
 
   h2 {
     @include heading(1.5rem, 700);
+    margin: 0;
   }
 }
 

@@ -209,12 +209,14 @@ import { ThemeService } from '../../core/services/theme.service';
     .main-content {
       flex: 1;
       min-height: calc(100vh - 60px);
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 24px;
+      padding: 24px 16px;
       padding-bottom: 100px;
       width: 100%;
       transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      @media (min-width: 768px) and (max-width: 1023px) {
+        padding: 28px 24px 32px calc(var(--sidebar-collapsed-width) + 24px);
+      }
 
       @media (min-width: 1024px) {
         padding: 32px 40px;
@@ -225,9 +227,9 @@ import { ThemeService } from '../../core/services/theme.service';
         }
       }
 
-      @media (min-width: 768px) and (max-width: 1023px) {
-        padding-left: calc(var(--sidebar-collapsed-width) + 24px);
-        padding-bottom: 32px;
+      @media (min-width: 1800px) {
+        max-width: calc(1400px + var(--sidebar-width) + 80px);
+        margin: 0 auto;
       }
     }
   `],

@@ -56,19 +56,19 @@
   border-radius: var(--radius-full);
   font-size: 0.7rem;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
   color: var(--text-muted);
 
   &.positive {
     background: var(--income-bg);
-    border-color: rgba(52, 211, 153, 0.15);
+    border-color: var(--income);
     color: var(--income);
   }
 
   &.negative {
     background: var(--expense-bg);
-    border-color: rgba(251, 113, 133, 0.15);
+    border-color: var(--expense);
     color: var(--expense);
   }
 }
@@ -98,11 +98,11 @@
   padding: 6px 14px;
   border-radius: var(--radius-full);
   background: var(--accent-bg);
-  border: 1px solid rgba(129, 140, 248, 0.1);
+  border: 1px solid var(--glass-border);
   transition: all var(--transition-fast);
 
   &:hover {
-    background: rgba(129, 140, 248, 0.18);
+    background: var(--accent-bg);
     box-shadow: var(--shadow-glow);
     transform: translateX(2px);
   }
@@ -586,6 +586,216 @@
 
 .empty-icon { font-size: 2rem; opacity: 0.5; }
 .empty-text { font-size: 0.85rem; color: var(--text-muted); }
+
+// ======================
+// Budget Section
+// ======================
+
+.budget-section {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.budget-overall {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+
+  &.ok { background: var(--income-bg); color: var(--income); }
+  &.warning { background: var(--warning-bg); color: var(--warning); }
+  &.exceeded { background: var(--expense-bg); color: var(--expense); }
+}
+
+.budget-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.budget-item {
+  @include glass-card;
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &.budget-warning { border-left: 3px solid var(--warning); }
+  &.budget-exceeded { border-left: 3px solid var(--expense); }
+  &.budget-ok { border-left: 3px solid var(--income); }
+}
+
+.budget-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.budget-icon {
+  font-size: 1.1rem;
+}
+
+.budget-name {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.budget-values {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.budget-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: var(--surface);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.budget-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .budget-ok & { background: var(--income); }
+  .budget-warning & { background: var(--warning); }
+  .budget-exceeded & { background: var(--expense); }
+}
+
+.budget-item-footer {
+  @include flex-between;
+}
+
+.budget-remaining {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.budget-percent {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+// ======================
+// Goals Section
+// ======================
+
+.goals-section {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @include tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.goal-card {
+  @include glass-card;
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform var(--transition-fast);
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &.goal-completed {
+    border: 1px solid var(--income);
+  }
+
+  &.goal-behind {
+    border: 1px solid var(--warning);
+  }
+}
+
+.goal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.goal-icon {
+  font-size: 1.5rem;
+}
+
+.goal-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.goal-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  @include truncate;
+}
+
+.goal-target {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.goal-percent {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.goal-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: var(--surface);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.goal-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.goal-footer {
+  @include flex-between;
+}
+
+.goal-current {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.goal-monthly {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.goal-completed-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--income-bg);
+  color: var(--income);
+}
 
 // ======================
 // Money

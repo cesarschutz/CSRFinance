@@ -8,6 +8,10 @@ import { TransactionService } from '../../core/services/transaction.service';
 import { AccountService } from '../../core/services/account.service';
 import { CategoryService } from '../../core/services/category.service';
 import { ContextService } from '../../core/services/context.service';
+import { BudgetService } from '../../core/services/budget.service';
+import { GoalService } from '../../core/services/goal.service';
+import { BudgetProgress } from '../../core/models/budget.model';
+import { GoalProgress } from '../../core/models/goal.model';
 
 import { MonthPickerComponent } from '../../shared/components/month-picker/month-picker.component';
 import { SummaryCardsComponent, SummaryCard } from '../../shared/components/summary-cards/summary-cards.component';
@@ -36,6 +40,8 @@ export class DashboardComponent {
   private accountService = inject(AccountService);
   private categoryService = inject(CategoryService);
   contextService = inject(ContextService);
+  private budgetService = inject(BudgetService);
+  private goalService = inject(GoalService);
 
   year = signal(new Date().getFullYear());
   month = signal(new Date().getMonth());
@@ -307,4 +313,24 @@ export class DashboardComponent {
   });
 
   readonly hasCreditCards = computed(() => this.accountService.creditCardAccounts().length > 0);
+
+  // --- Budget progress ---
+  readonly budgetProgress = computed<BudgetProgress[]>(() => {
+    this.transactionService.transactions();
+    return this.budgetService.getProgress(this.year(), this.month());
+  });
+
+  readonly budgetSummary = computed(() => {
+    this.transactionService.transactions();
+    return this.budgetService.getBudgetSummary(this.year(), this.month());
+  });
+
+  readonly hasBudgets = computed(() => this.budgetService.getByMonth(this.year(), this.month()).length > 0);
+
+  // --- Goals ---
+  readonly goalsProgress = computed<GoalProgress[]>(() => {
+    return this.goalService.getAllProgress();
+  });
+
+  readonly hasGoals = computed(() => this.goalService.goals().length > 0);
 }

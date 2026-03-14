@@ -14,7 +14,8 @@
   flex-direction: column;
   z-index: 50;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+  overflow-x: visible;
+  overflow-y: hidden;
   @include custom-scrollbar;
 
   @media (min-width: 768px) and (max-width: 1023px) {
@@ -68,18 +69,19 @@
   top: 100%;
   left: 16px;
   right: 16px;
-  background: rgba(18, 18, 30, 0.95);
+  background: rgba(18, 18, 30, 0.98);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 6px;
-  z-index: 60;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 
   &.collapsed {
-    left: 8px;
+    left: var(--sidebar-collapsed-width);
     right: auto;
+    top: 16px;
     width: 180px;
   }
 }

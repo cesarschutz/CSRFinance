@@ -8,10 +8,14 @@ import { AccountService } from './account.service';
 import { CategoryService } from './category.service';
 import { TransactionService } from './transaction.service';
 import { RecurringTransactionService } from './recurring-transaction.service';
+import { BudgetService } from './budget.service';
+import { GoalService } from './goal.service';
 import { Account, AccountType } from '../models/account.model';
 import { Category, CategoryType } from '../models/category.model';
 import { Transaction, TransactionType, TransactionStatus } from '../models/transaction.model';
 import { RecurringTransaction, RecurrenceFrequency } from '../models/recurring-transaction.model';
+import { Budget } from '../models/budget.model';
+import { Goal } from '../models/goal.model';
 import { DEFAULT_CATEGORIES } from '../seed-data';
 
 export type FileStatus = 'no-file' | 'saved' | 'saving' | 'unsaved' | 'error';
@@ -23,6 +27,8 @@ export class FileService implements OnDestroy {
   private categoryService = inject(CategoryService);
   private transactionService = inject(TransactionService);
   private recurringService = inject(RecurringTransactionService);
+  private budgetService = inject(BudgetService);
+  private goalService = inject(GoalService);
 
   // State signals
   private statusSignal = signal<FileStatus>('no-file');
@@ -49,6 +55,8 @@ export class FileService implements OnDestroy {
   private readonly SHEET_CATEGORIAS = 'Categorias';
   private readonly SHEET_TRANSACOES = 'Transações';
   private readonly SHEET_RECORRENCIAS = 'Recorrências';
+  private readonly SHEET_ORCAMENTOS = 'Orçamentos';
+  private readonly SHEET_METAS = 'Metas';
 
   // Auto-save subscription
   private autoSaveSub: Subscription;
@@ -246,6 +254,8 @@ export class FileService implements OnDestroy {
     this.categoryService.loadFromData(seedDefaults ? DEFAULT_CATEGORIES : []);
     this.transactionService.loadFromData([]);
     this.recurringService.loadFromData([]);
+    this.budgetService.loadFromData([]);
+    this.goalService.loadFromData([]);
     this.suppressAutoSave = false;
   }
 
@@ -347,6 +357,35 @@ export class FileService implements OnDestroy {
     const wsRecurrences = XLSX.utils.json_to_sheet(recurrenceRows);
     XLSX.utils.book_append_sheet(wb, wsRecurrences, this.SHEET_RECORRENCIAS);
 
+    // Sheet "Orçamentos"
+    const budgets = this.budgetService.budgets();
+    const budgetRows = budgets.map(b => ({
+      id: b.id,
+      categoriaId: b.categoryId,
+      valor: b.amount,
+      ano: b.year,
+      mes: b.month,
+      criadoEm: b.createdAt,
+    }));
+    const wsBudgets = XLSX.utils.json_to_sheet(budgetRows);
+    XLSX.utils.book_append_sheet(wb, wsBudgets, this.SHEET_ORCAMENTOS);
+
+    // Sheet "Metas"
+    const goals = this.goalService.goals();
+    const goalRows = goals.map(g => ({
+      id: g.id,
+      nome: g.name,
+      icone: g.icon,
+      cor: g.color,
+      valorAlvo: g.targetAmount,
+      valorAtual: g.currentAmount,
+      prazo: g.deadline ?? '',
+      contaId: g.accountId ?? '',
+      criadoEm: g.createdAt,
+    }));
+    const wsGoals = XLSX.utils.json_to_sheet(goalRows);
+    XLSX.utils.book_append_sheet(wb, wsGoals, this.SHEET_METAS);
+
     return wb;
   }
 
@@ -392,6 +431,8 @@ export class FileService implements OnDestroy {
     categories: Category[];
     transactions: Transaction[];
     recurringTransactions: RecurringTransaction[];
+    budgets: Budget[];
+    goals: Goal[];
   } {
     this.validateWorkbook(workbook);
 
@@ -463,7 +504,32 @@ export class FileService implements OnDestroy {
       createdAt: String(r.criadoEm ?? new Date().toISOString()),
     }));
 
-    return { accounts, categories, transactions, recurringTransactions };
+    // Sheet "Orçamentos" (optional)
+    const rawBudgets = parseSheet(this.SHEET_ORCAMENTOS);
+    const budgets: Budget[] = rawBudgets.map((r: any) => ({
+      id: String(r.id ?? ''),
+      categoryId: String(r.categoriaId ?? ''),
+      amount: Number(r.valor ?? 0),
+      year: Number(r.ano ?? new Date().getFullYear()),
+      month: Number(r.mes ?? 0),
+      createdAt: String(r.criadoEm ?? new Date().toISOString()),
+    }));
+
+    // Sheet "Metas" (optional)
+    const rawGoals = parseSheet(this.SHEET_METAS);
+    const goals: Goal[] = rawGoals.map((r: any) => ({
+      id: String(r.id ?? ''),
+      name: String(r.nome ?? ''),
+      icon: String(r.icone ?? '🎯'),
+      color: String(r.cor ?? '#818CF8'),
+      targetAmount: Number(r.valorAlvo ?? 0),
+      currentAmount: Number(r.valorAtual ?? 0),
+      ...(r.prazo ? { deadline: String(r.prazo) } : {}),
+      ...(r.contaId ? { accountId: String(r.contaId) } : {}),
+      createdAt: String(r.criadoEm ?? new Date().toISOString()),
+    }));
+
+    return { accounts, categories, transactions, recurringTransactions, budgets, goals };
   }
 
   private importData(data: {
@@ -471,12 +537,16 @@ export class FileService implements OnDestroy {
     categories: Category[];
     transactions: Transaction[];
     recurringTransactions: RecurringTransaction[];
+    budgets: Budget[];
+    goals: Goal[];
   }): void {
     this.suppressAutoSave = true;
     this.accountService.loadFromData(data.accounts);
     this.categoryService.loadFromData(data.categories);
     this.transactionService.loadFromData(data.transactions);
     this.recurringService.loadFromData(data.recurringTransactions);
+    this.budgetService.loadFromData(data.budgets);
+    this.goalService.loadFromData(data.goals);
     this.suppressAutoSave = false;
   }
 
