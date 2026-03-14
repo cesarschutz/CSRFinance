@@ -343,3 +343,72 @@
     color: var(--text-muted);
   }
 }
+
+// ======================
+// Investment Summary
+// ======================
+.investment-summary-section {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.investment-mini-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.investment-mini-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm), var(--shadow-bento);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform var(--transition-fast);
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.mini-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-card-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mini-card-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-card-balance {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.mini-card-yield {
+  font-size: 0.8rem;
+  font-weight: 600;
+
+  &.positive { color: var(--income); }
+  &.negative { color: var(--expense); }
+}

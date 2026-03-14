@@ -1,0 +1,150 @@
+<div class="investments-page">
+  <div class="page-header">
+    <h2>Investimentos</h2>
+  </div>
+
+  @if (investmentAccounts().length === 0) {
+    <app-empty-state
+      icon="💰"
+      title="Nenhum investimento cadastrado"
+      message="Crie uma conta do tipo Poupanca ou Investimento em Contas para comecar.">
+    </app-empty-state>
+  } @else {
+    <!-- Summary Cards -->
+    <app-summary-cards [cards]="summaryCards()"></app-summary-cards>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+      <!-- Donut Chart -->
+      @if (donutSegments().length > 0) {
+        <div class="chart-card">
+          <h3 class="card-title">Alocacao</h3>
+          <app-donut-chart
+            [segments]="donutSegments()"
+            centerLabel="Total"
+            [showLegend]="true">
+          </app-donut-chart>
+        </div>
+      }
+
+      <!-- Investments Table -->
+      <div class="table-card">
+        <h3 class="card-title">Detalhamento</h3>
+        <div class="inv-table">
+          <div class="inv-table-header">
+            <span class="col-name">Conta</span>
+            <span class="col-type">Tipo</span>
+            <span class="col-invested">Investido</span>
+            <span class="col-real">Valor Real</span>
+            <span class="col-yield">Rendimento</span>
+            <span class="col-percent">%</span>
+            <span class="col-actions"></span>
+          </div>
+
+          @for (item of allSummary().accounts; track item.account.id) {
+            <div class="inv-table-row" (click)="toggleExpand(item.account.id)">
+              <span class="col-name">
+                <span class="dot" [style.background]="item.account.color"></span>
+                {{ item.account.name }}
+              </span>
+              <span class="col-type">{{ getAccountTypeLabel(item.account) }}</span>
+              <span class="col-invested money">{{ item.summary.netInvested | currencyBrl }}</span>
+              <span class="col-real money">{{ item.summary.currentBalance | currencyBrl }}</span>
+              <span class="col-yield money" [class.positive]="item.summary.totalYield >= 0" [class.negative]="item.summary.totalYield < 0">
+                {{ item.summary.totalYield | currencyBrl }}
+              </span>
+              <span class="col-percent" [class.positive]="item.summary.yieldPercentage >= 0" [class.negative]="item.summary.yieldPercentage < 0">
+                {{ item.summary.yieldPercentage | number:'1.2-2' }}%
+              </span>
+              <span class="col-actions">
+                <button class="btn-sm" (click)="openBalanceUpdate(item.account, $event)">Atualizar</button>
+              </span>
+            </div>
+
+            <!-- Expanded: Monthly data -->
+            @if (expandedAccountId() === item.account.id) {
+              <div class="inv-monthly-detail">
+                @let monthlyData = getMonthlyData(item.account.id);
+                @if (monthlyData.length > 0) {
+                  <div class="monthly-table">
+                    <div class="monthly-header">
+                      <span>Mes</span>
+                      <span>Investido Acum.</span>
+                      <span>Rendimento</span>
+                      <span>%</span>
+                      <span>Saldo</span>
+                    </div>
+                    @for (row of monthlyData; track row.month) {
+                      <div class="monthly-row">
+                        <span>{{ row.label }}</span>
+                        <span class="money">{{ row.cumulativeInvested | currencyBrl }}</span>
+                        <span class="money" [class.positive]="row.yieldThisMonth >= 0" [class.negative]="row.yieldThisMonth < 0">
+                          {{ row.yieldThisMonth | currencyBrl }}
+                        </span>
+                        <span [class.positive]="row.yieldPercentage >= 0" [class.negative]="row.yieldPercentage < 0">
+                          {{ row.yieldPercentage | number:'1.2-2' }}%
+                        </span>
+                        <span class="money">{{ row.balance | currencyBrl }}</span>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <p class="no-data">Nenhum dado mensal disponivel.</p>
+                }
+
+                @if (item.account.maturityDate) {
+                  <div class="maturity-info">
+                    Data de resgate: {{ item.account.maturityDate }}
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Balance Update Modal -->
+<app-modal
+  [isOpen]="showBalanceModal()"
+  title="Atualizar Saldo"
+  (close)="closeBalanceModal()">
+
+  <div class="balance-update-form">
+    @let acc = balanceUpdateAccount();
+    @if (acc) {
+      <div class="balance-update-info">
+        <span class="balance-update-name">{{ acc.name }}</span>
+        <span class="balance-update-bank">{{ acc.bank }}</span>
+      </div>
+
+      <div class="form-group">
+        <label>Saldo registrado</label>
+        <div class="tracked-balance money">{{ getTrackedBalance() | currencyBrl }}</div>
+      </div>
+
+      <div class="form-group">
+        <label>Saldo real atual</label>
+        <app-currency-input
+          [formControl]="balanceAmountControl"
+          cssClass="form-input form-input-lg"
+          placeholder="0,00">
+        </app-currency-input>
+      </div>
+
+      <div class="yield-preview" [class.positive]="getYieldDifference() >= 0" [class.negative]="getYieldDifference() < 0">
+        <span class="yield-label">{{ getYieldDifference() >= 0 ? 'Rendimento' : 'Perda' }}</span>
+        <span class="yield-value money">{{ getYieldDifference() | currencyBrl }}</span>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="closeBalanceModal()">Cancelar</button>
+        <button type="button" class="btn-primary" (click)="saveBalanceUpdate()" [disabled]="getYieldDifference() === 0">
+          Salvar
+        </button>
+      </div>
+    }
+  </div>
+</app-modal>

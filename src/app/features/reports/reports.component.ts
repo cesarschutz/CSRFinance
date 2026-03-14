@@ -12,7 +12,7 @@ import { DonutChartComponent, DonutSegment } from '../../shared/components/donut
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { CurrencyBrlPipe } from '../../shared/pipes/currency-brl.pipe';
 
-export type ReportTab = 'category' | 'daily' | 'balance';
+export type ReportTab = 'category' | 'daily' | 'balance' | 'investments';
 
 export interface CategoryReport {
   id: string;
@@ -354,5 +354,29 @@ export class ReportsComponent {
 
   hasMonthlyData = computed<boolean>(() => {
     return this.monthlyBalances().some(b => b.income > 0 || b.expense > 0);
+  });
+
+  // ==============================
+  // Tab 4 - Investimentos
+  // ==============================
+
+  readonly hasInvestmentAccounts = computed(() =>
+    this.accountService.allInvestmentAccounts().length > 0
+  );
+
+  readonly investmentsSummary = computed(() => {
+    this.transactionService.transactions();
+    return this.transactionService.getAllInvestmentsSummary();
+  });
+
+  readonly investmentDonutSegments = computed<DonutSegment[]>(() => {
+    const s = this.investmentsSummary();
+    return s.accounts
+      .filter(a => a.summary.currentBalance > 0)
+      .map(a => ({
+        label: a.account.name,
+        value: a.summary.currentBalance,
+        color: a.account.color,
+      }));
   });
 }

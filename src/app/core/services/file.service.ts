@@ -8,7 +8,7 @@ import { AccountService } from './account.service';
 import { CategoryService } from './category.service';
 import { TransactionService } from './transaction.service';
 import { RecurringTransactionService } from './recurring-transaction.service';
-import { Account } from '../models/account.model';
+import { Account, AccountType } from '../models/account.model';
 import { Category, CategoryType } from '../models/category.model';
 import { Transaction, TransactionType, TransactionStatus } from '../models/transaction.model';
 import { RecurringTransaction, RecurrenceFrequency } from '../models/recurring-transaction.model';
@@ -42,6 +42,7 @@ export class FileService implements OnDestroy {
 
   // Auto-save guard
   private suppressAutoSave = false;
+  private isSaving = false;
 
   // Sheet names
   private readonly SHEET_CONTAS = 'Contas';
@@ -249,11 +250,11 @@ export class FileService implements OnDestroy {
   }
 
   private async autoSave(): Promise<void> {
-    if (!this.fileHandle) {
-      this.statusSignal.set('unsaved');
+    if (!this.fileHandle || this.isSaving) {
+      if (!this.fileHandle) this.statusSignal.set('unsaved');
       return;
     }
-
+    this.isSaving = true;
     try {
       this.statusSignal.set('saving');
       const wb = this.buildWorkbook();
@@ -264,6 +265,8 @@ export class FileService implements OnDestroy {
     } catch {
       this.statusSignal.set('error');
       this.errorMessageSignal.set('Erro ao salvar automaticamente');
+    } finally {
+      this.isSaving = false;
     }
   }
 
@@ -279,9 +282,13 @@ export class FileService implements OnDestroy {
       id: a.id,
       nome: a.name,
       banco: a.bank,
+      tipo: a.type ?? 'checking',
+      contaPaiId: a.parentAccountId ?? '',
       saldoInicial: a.initialBalance,
       cor: a.color,
       criadoEm: a.createdAt,
+      dataInvestimento: a.investmentDate ?? '',
+      dataResgate: a.maturityDate ?? '',
     }));
     const wsAccounts = XLSX.utils.json_to_sheet(accountRows);
     XLSX.utils.book_append_sheet(wb, wsAccounts, this.SHEET_CONTAS);
@@ -399,9 +406,13 @@ export class FileService implements OnDestroy {
       id: String(r.id ?? ''),
       name: String(r.nome ?? ''),
       bank: String(r.banco ?? ''),
+      type: (['checking', 'savings', 'investment'].includes(r.tipo) ? r.tipo : 'checking') as AccountType,
+      ...(r.contaPaiId ? { parentAccountId: String(r.contaPaiId) } : {}),
       initialBalance: Number(r.saldoInicial ?? 0),
       color: String(r.cor ?? '#6C5CE7'),
       createdAt: String(r.criadoEm ?? new Date().toISOString()),
+      ...(r.dataInvestimento ? { investmentDate: String(r.dataInvestimento) } : {}),
+      ...(r.dataResgate ? { maturityDate: String(r.dataResgate) } : {}),
     }));
 
     const rawCategories = parseSheet(this.SHEET_CATEGORIAS);
@@ -418,7 +429,7 @@ export class FileService implements OnDestroy {
       id: String(r.id ?? ''),
       description: String(r.descricao ?? ''),
       amount: Number(r.valor ?? 0),
-      type: (['income', 'expense', 'transfer'].includes(r.tipo) ? r.tipo : 'expense') as TransactionType,
+      type: (['income', 'expense', 'transfer', 'yield'].includes(r.tipo) ? r.tipo : 'expense') as TransactionType,
       categoryId: String(r.categoriaId ?? ''),
       accountId: String(r.contaId ?? ''),
       date: String(r.data ?? ''),

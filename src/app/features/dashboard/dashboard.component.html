@@ -45,6 +45,30 @@
     </div>
   </div>
 
+  <!-- Investment Summary (only on checking/all view, if investments exist) -->
+  @if (!isSavingsView() && hasInvestmentAccounts()) {
+    <div class="investment-summary-section">
+      <div class="section-header">
+        <h2 class="section-title">Investimentos</h2>
+        <a class="section-link" routerLink="/investments">Ver detalhes →</a>
+      </div>
+      <div class="investment-mini-cards">
+        @for (item of investmentsSummary().accounts; track item.account.id) {
+          <div class="investment-mini-card">
+            <div class="mini-card-header">
+              <span class="mini-card-dot" [style.background]="item.account.color"></span>
+              <span class="mini-card-name">{{ item.account.name }}</span>
+            </div>
+            <div class="mini-card-balance money">{{ item.summary.currentBalance | currencyBrl }}</div>
+            <div class="mini-card-yield" [class.positive]="item.summary.yieldPercentage >= 0" [class.negative]="item.summary.yieldPercentage < 0">
+              {{ item.summary.yieldPercentage | number:'1.2-2' }}%
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   <!-- Recent Transactions -->
   <div class="recent-section">
     <div class="section-header">

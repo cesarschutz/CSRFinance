@@ -286,6 +286,10 @@
   &.transfer {
     background: var(--transfer-bg);
   }
+
+  &.yield {
+    background: rgba(0, 184, 148, 0.1);
+  }
 }
 
 .date-cell {
@@ -338,6 +342,11 @@
   color: var(--transfer);
   font-weight: 500;
   white-space: nowrap;
+}
+
+.yield-label {
+  color: var(--income);
+  font-weight: 600;
 }
 
 .actions {

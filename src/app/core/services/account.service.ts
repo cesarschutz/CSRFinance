@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Account } from '../models/account.model';
+import { Account, AccountType } from '../models/account.model';
 import { StorageService } from './storage.service';
 
 @Injectable({ providedIn: 'root' })
@@ -17,13 +17,38 @@ export class AccountService {
     return this.accountsSignal().find(a => a.id === id) ?? null;
   });
 
+  readonly checkingAccounts = computed(() =>
+    this.accountsSignal().filter(a => (a.type ?? 'checking') === 'checking')
+  );
+
+  readonly savingsAccounts = computed(() =>
+    this.accountsSignal().filter(a => (a.type ?? 'checking') === 'savings')
+  );
+
+  readonly investmentAccounts = computed(() =>
+    this.accountsSignal().filter(a => (a.type ?? 'checking') === 'investment')
+  );
+
+  readonly allInvestmentAccounts = computed(() =>
+    this.accountsSignal().filter(a => {
+      const type = a.type ?? 'checking';
+      return type === 'savings' || type === 'investment';
+    })
+  );
+
   constructor(private storage: StorageService) {
     this.load();
   }
 
   private load(): void {
     const stored = this.storage.get<Account[]>(this.STORAGE_KEY);
-    this.accountsSignal.set(stored ?? []);
+    if (stored) {
+      // Backward compat: ensure all accounts have a type
+      const migrated = stored.map(a => ({ ...a, type: a.type ?? 'checking' as AccountType }));
+      this.accountsSignal.set(migrated);
+    } else {
+      this.accountsSignal.set([]);
+    }
   }
 
   private save(): void {
@@ -31,7 +56,9 @@ export class AccountService {
   }
 
   loadFromData(accounts: Account[]): void {
-    this.accountsSignal.set(accounts);
+    // Backward compat: ensure all accounts have a type
+    const migrated = accounts.map(a => ({ ...a, type: a.type ?? 'checking' as AccountType }));
+    this.accountsSignal.set(migrated);
     this.save();
   }
 
@@ -43,9 +70,21 @@ export class AccountService {
     return this.accountsSignal().find(a => a.id === id);
   }
 
+  getChildAccounts(parentId: string): Account[] {
+    return this.accountsSignal().filter(a => a.parentAccountId === parentId);
+  }
+
+  isSavingsOrInvestment(accountId: string): boolean {
+    const account = this.getById(accountId);
+    if (!account) return false;
+    const type = account.type ?? 'checking';
+    return type === 'savings' || type === 'investment';
+  }
+
   add(account: Omit<Account, 'id' | 'createdAt'>): Account {
     const newAcc: Account = {
       ...account,
+      type: account.type ?? 'checking',
       id: 'acc-' + crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
@@ -62,8 +101,11 @@ export class AccountService {
   }
 
   delete(id: string): void {
-    this.accountsSignal.update(accs => accs.filter(a => a.id !== id));
-    if (this.selectedAccountIdSignal() === id) {
+    // Also delete child accounts (savings/investments linked to this account)
+    const children = this.getChildAccounts(id);
+    const idsToDelete = [id, ...children.map(c => c.id)];
+    this.accountsSignal.update(accs => accs.filter(a => !idsToDelete.includes(a.id)));
+    if (idsToDelete.includes(this.selectedAccountIdSignal() ?? '')) {
       this.selectedAccountIdSignal.set(null);
     }
     this.save();

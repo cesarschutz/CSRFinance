@@ -30,8 +30,17 @@
       [class.active]="activeTab() === 'balance'"
       (click)="setTab('balance')"
     >
-      Balan&ccedil;o Mensal
+      Balanco Mensal
     </button>
+    @if (hasInvestmentAccounts()) {
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'investments'"
+        (click)="setTab('investments')"
+      >
+        Investimentos
+      </button>
+    }
   </nav>
 
   <!-- Tab Content -->
@@ -169,6 +178,93 @@
             icon="📈"
             title="Sem dados de balan&ccedil;o"
             message="N&atilde;o h&aacute; transa&ccedil;&otilde;es nos &uacute;ltimos 6 meses."
+          />
+        }
+      }
+
+      <!-- ========================== -->
+      <!-- Tab 4 - Investimentos      -->
+      <!-- ========================== -->
+      @case ('investments') {
+        @if (investmentsSummary().accounts.length > 0) {
+          <section class="report-section">
+            <!-- Summary -->
+            <div class="investment-report-summary">
+              <div class="inv-summary-item">
+                <span class="inv-summary-label">Total Investido</span>
+                <span class="inv-summary-value money">{{ investmentsSummary().totalInvested | currencyBrl }}</span>
+              </div>
+              <div class="inv-summary-item">
+                <span class="inv-summary-label">Valor Real</span>
+                <span class="inv-summary-value money">{{ investmentsSummary().totalReal | currencyBrl }}</span>
+              </div>
+              <div class="inv-summary-item">
+                <span class="inv-summary-label">Rendimento</span>
+                <span class="inv-summary-value money" [class.income]="investmentsSummary().totalYield >= 0" [class.expense]="investmentsSummary().totalYield < 0">
+                  {{ investmentsSummary().totalYield | currencyBrl }}
+                </span>
+              </div>
+              <div class="inv-summary-item">
+                <span class="inv-summary-label">% Rendimento</span>
+                <span class="inv-summary-value" [class.income]="investmentsSummary().yieldPercentage >= 0" [class.expense]="investmentsSummary().yieldPercentage < 0">
+                  {{ investmentsSummary().yieldPercentage | number:'1.2-2' }}%
+                </span>
+              </div>
+            </div>
+
+            <!-- Donut Chart -->
+            @if (investmentDonutSegments().length > 0) {
+              <div class="chart-card">
+                <app-donut-chart
+                  [segments]="investmentDonutSegments()"
+                  centerLabel="Total"
+                  [showLegend]="true"
+                />
+              </div>
+            }
+
+            <!-- Per-account table -->
+            <div class="investment-table">
+              @for (item of investmentsSummary().accounts; track item.account.id) {
+                <div class="investment-table-row">
+                  <div class="inv-row-name">
+                    <span class="inv-dot" [style.background]="item.account.color"></span>
+                    <div>
+                      <span class="inv-name">{{ item.account.name }}</span>
+                      <span class="inv-bank">{{ item.account.bank }}</span>
+                    </div>
+                  </div>
+                  <div class="inv-row-stats">
+                    <div class="inv-row-stat">
+                      <span class="inv-row-stat-label">Investido</span>
+                      <span class="inv-row-stat-value money">{{ item.summary.netInvested | currencyBrl }}</span>
+                    </div>
+                    <div class="inv-row-stat">
+                      <span class="inv-row-stat-label">Saldo Real</span>
+                      <span class="inv-row-stat-value money">{{ item.summary.currentBalance | currencyBrl }}</span>
+                    </div>
+                    <div class="inv-row-stat">
+                      <span class="inv-row-stat-label">Rendimento</span>
+                      <span class="inv-row-stat-value money" [class.income]="item.summary.totalYield >= 0" [class.expense]="item.summary.totalYield < 0">
+                        {{ item.summary.totalYield | currencyBrl }}
+                      </span>
+                    </div>
+                    <div class="inv-row-stat">
+                      <span class="inv-row-stat-label">%</span>
+                      <span class="inv-row-stat-value" [class.income]="item.summary.yieldPercentage >= 0" [class.expense]="item.summary.yieldPercentage < 0">
+                        {{ item.summary.yieldPercentage | number:'1.2-2' }}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        } @else {
+          <app-empty-state
+            icon="💰"
+            title="Sem investimentos"
+            message="Crie contas do tipo Poupanca ou Investimento para visualizar os relatorios."
           />
         }
       }

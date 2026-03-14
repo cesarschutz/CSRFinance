@@ -1,9 +1,9 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 import { AccountService } from '../../core/services/account.service';
-import { TransactionService } from '../../core/services/transaction.service';
-import { Account } from '../../core/models/account.model';
+import { TransactionService, InvestmentSummary } from '../../core/services/transaction.service';
+import { Account, AccountType } from '../../core/models/account.model';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { CurrencyInputComponent } from '../../shared/components/currency-input/currency-input.component';
@@ -30,21 +30,46 @@ export class AccountsComponent {
 
   showModal = signal(false);
   editingAccount = signal<Account | null>(null);
+  showBalanceModal = signal(false);
+  balanceUpdateAccount = signal<Account | null>(null);
+  balanceAmountControl = new FormControl(0);
 
   readonly presetColors = PRESET_COLORS;
   selectedColor = signal('#6C5CE7');
+  selectedType = signal<AccountType>('checking');
 
   form: FormGroup = this.fb.group({
     name: ['', Validators.required],
     bank: ['', Validators.required],
-    initialBalance: [0, Validators.required],
+    initialBalance: [0],
+    parentAccountId: [''],
+    investmentDate: [''],
+    maturityDate: [''],
   });
 
-  readonly accounts = computed(() => this.accountService.accounts());
+  readonly checkingAccounts = computed(() => this.accountService.checkingAccounts());
+  readonly investmentAccounts = computed(() => this.accountService.allInvestmentAccounts());
   readonly balances = computed(() => this.transactionService.accountBalances());
 
   getBalance(accountId: string): number {
     return this.balances().get(accountId) ?? 0;
+  }
+
+  getInvestmentSummary(accountId: string): InvestmentSummary {
+    return this.transactionService.getInvestmentSummary(accountId);
+  }
+
+  getParentAccount(parentId: string | undefined): Account | undefined {
+    if (!parentId) return undefined;
+    return this.accountService.getById(parentId);
+  }
+
+  getAccountTypeLabel(type: AccountType): string {
+    switch (type) {
+      case 'checking': return 'Corrente';
+      case 'savings': return 'Poupanca';
+      case 'investment': return 'Investimento';
+    }
   }
 
   getGradient(color: string): string {
@@ -61,8 +86,9 @@ export class AccountsComponent {
 
   openNewModal(): void {
     this.editingAccount.set(null);
-    this.form.reset({ name: '', bank: '', initialBalance: 0 });
+    this.form.reset({ name: '', bank: '', initialBalance: 0, parentAccountId: '', investmentDate: '', maturityDate: '' });
     this.selectedColor.set('#6C5CE7');
+    this.selectedType.set('checking');
     this.showModal.set(true);
   }
 
@@ -72,8 +98,12 @@ export class AccountsComponent {
       name: account.name,
       bank: account.bank,
       initialBalance: account.initialBalance,
+      parentAccountId: account.parentAccountId ?? '',
+      investmentDate: account.investmentDate ?? '',
+      maturityDate: account.maturityDate ?? '',
     });
     this.selectedColor.set(account.color);
+    this.selectedType.set(account.type ?? 'checking');
     this.showModal.set(true);
   }
 
@@ -86,17 +116,29 @@ export class AccountsComponent {
     this.selectedColor.set(color);
   }
 
+  selectType(type: AccountType): void {
+    this.selectedType.set(type);
+  }
+
   saveAccount(): void {
     if (this.form.invalid) return;
 
-    const { name, bank, initialBalance } = this.form.value;
+    const { name, bank, initialBalance, parentAccountId, investmentDate, maturityDate } = this.form.value;
     const color = this.selectedColor();
+    const type = this.selectedType();
+
+    const accountData: Partial<Account> = {
+      name, bank, initialBalance, color, type,
+      ...(type !== 'checking' && parentAccountId ? { parentAccountId } : { parentAccountId: undefined }),
+      ...(type === 'investment' && investmentDate ? { investmentDate } : { investmentDate: undefined }),
+      ...(type === 'investment' && maturityDate ? { maturityDate } : { maturityDate: undefined }),
+    };
 
     const editing = this.editingAccount();
     if (editing) {
-      this.accountService.update(editing.id, { name, bank, initialBalance, color });
+      this.accountService.update(editing.id, accountData);
     } else {
-      this.accountService.add({ name, bank, initialBalance, color });
+      this.accountService.add(accountData as Omit<Account, 'id' | 'createdAt'>);
     }
 
     this.closeModal();
@@ -113,5 +155,45 @@ export class AccountsComponent {
     if (confirm(message)) {
       this.accountService.delete(account.id);
     }
+  }
+
+  // Balance Update Modal
+  openBalanceUpdate(account: Account): void {
+    this.balanceUpdateAccount.set(account);
+    this.balanceAmountControl.setValue(this.getBalance(account.id));
+    this.showBalanceModal.set(true);
+  }
+
+  closeBalanceModal(): void {
+    this.showBalanceModal.set(false);
+    this.balanceUpdateAccount.set(null);
+  }
+
+  getTrackedBalance(): number {
+    const acc = this.balanceUpdateAccount();
+    if (!acc) return 0;
+    return this.getBalance(acc.id);
+  }
+
+  getYieldDifference(): number {
+    return (this.balanceAmountControl.value ?? 0) - this.getTrackedBalance();
+  }
+
+  saveBalanceUpdate(): void {
+    const account = this.balanceUpdateAccount();
+    if (!account) return;
+
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+
+    this.transactionService.addYield({
+      accountId: account.id,
+      realBalance: this.balanceAmountControl.value ?? 0,
+      date: `${y}-${m}-${d}`,
+    });
+
+    this.closeBalanceModal();
   }
 }

@@ -106,6 +106,12 @@
   }
 }
 
+@include mobile-only {
+  .card-actions {
+    opacity: 1;
+  }
+}
+
 .action-btn {
   width: 32px;
   height: 32px;
@@ -344,4 +350,265 @@
     color: var(--text);
     border-color: rgba(15, 23, 42, 0.2);
   }
+}
+
+// Section
+.section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+// Type Selector
+.type-selector {
+  display: flex;
+  gap: 8px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  border: 1px solid var(--border);
+}
+
+.type-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:hover:not(.active) {
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+
+  .form-group {
+    flex: 1;
+  }
+}
+
+// Investment Card
+.investment-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm), var(--shadow-bento);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md), var(--shadow-bento);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .card-actions.always-visible {
+    opacity: 1;
+  }
+}
+
+.inv-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.inv-name {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.inv-type {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.inv-balance-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.inv-balance-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.inv-balance-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.inv-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.inv-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inv-stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.inv-stat-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+
+  &.positive { color: var(--income); }
+  &.negative { color: var(--expense); }
+}
+
+.inv-maturity {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  background: var(--surface);
+  border-radius: var(--radius-xs);
+}
+
+.btn-update-balance {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--accent);
+    color: #fff;
+  }
+}
+
+// Balance Update Modal
+.balance-update-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.balance-update-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.balance-update-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.balance-update-bank {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.tracked-balance {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.form-input-lg {
+  font-size: 1.25rem;
+  padding: 14px;
+}
+
+.yield-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+
+  &.positive {
+    border-color: var(--income);
+    background: rgba(0, 184, 148, 0.05);
+  }
+  &.negative {
+    border-color: var(--expense);
+    background: rgba(232, 67, 147, 0.05);
+  }
+}
+
+.yield-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.yield-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+
+  .positive & { color: var(--income); }
+  .negative & { color: var(--expense); }
 }

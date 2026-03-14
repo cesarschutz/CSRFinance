@@ -4,59 +4,150 @@
     <h2>Contas</h2>
   </div>
 
-  <!-- Accounts Grid -->
-  <div class="accounts-grid">
-    @for (account of accounts(); track account.id) {
-      <div
-        class="account-card"
-        [style.background]="getGradient(account.color)">
-        <div class="card-header">
-          <span class="bank-name">{{ account.bank }}</span>
-          <div class="card-actions">
-            <button
-              class="action-btn"
-              (click)="openEditModal(account)"
-              aria-label="Editar conta">
-              ✏
-            </button>
-            <button
-              class="action-btn"
-              (click)="deleteAccount(account); $event.stopPropagation()"
-              aria-label="Excluir conta">
-              ✕
-            </button>
+  <!-- Contas Correntes -->
+  <div class="section">
+    <h3 class="section-title">Contas Correntes</h3>
+    <div class="accounts-grid">
+      @for (account of checkingAccounts(); track account.id) {
+        <div
+          class="account-card"
+          [style.background]="getGradient(account.color)">
+          <div class="card-header">
+            <span class="bank-name">{{ account.bank }}</span>
+            <div class="card-actions">
+              <button
+                class="action-btn"
+                (click)="openEditModal(account)"
+                aria-label="Editar conta">
+                ✏
+              </button>
+              <button
+                class="action-btn"
+                (click)="deleteAccount(account); $event.stopPropagation()"
+                aria-label="Excluir conta">
+                ✕
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <span class="account-name">{{ account.name }}</span>
+            <span class="account-balance">{{ getBalance(account.id) | currencyBrl }}</span>
           </div>
         </div>
-        <div class="card-body">
-          <span class="account-name">{{ account.name }}</span>
-          <span class="account-balance">{{ getBalance(account.id) | currencyBrl }}</span>
-        </div>
-      </div>
-    }
+      }
 
-    <!-- New Account Card -->
-    <div class="new-account-card" (click)="openNewModal()">
-      <span class="new-icon">+</span>
-      <span class="new-label">Nova Conta</span>
+      <!-- New Account Card -->
+      <div class="new-account-card" (click)="openNewModal()">
+        <span class="new-icon">+</span>
+        <span class="new-label">Nova Conta</span>
+      </div>
     </div>
   </div>
 
-  @if (accounts().length === 0) {
+  <!-- Poupancas e Investimentos -->
+  @if (investmentAccounts().length > 0) {
+    <div class="section">
+      <h3 class="section-title">Poupancas e Investimentos</h3>
+      <div class="accounts-grid">
+        @for (account of investmentAccounts(); track account.id) {
+          <div class="investment-card">
+            <div class="card-header">
+              <div class="inv-header-left">
+                <span class="account-dot" [style.background]="account.color"></span>
+                <div>
+                  <span class="inv-name">{{ account.name }}</span>
+                  <span class="inv-type">{{ getAccountTypeLabel(account.type) }} - {{ account.bank }}</span>
+                </div>
+              </div>
+              <div class="card-actions always-visible">
+                <button
+                  class="action-btn"
+                  (click)="openEditModal(account)"
+                  aria-label="Editar">
+                  ✏
+                </button>
+                <button
+                  class="action-btn"
+                  (click)="deleteAccount(account); $event.stopPropagation()"
+                  aria-label="Excluir">
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div class="inv-balance-row">
+              <span class="inv-balance-label">Saldo Atual</span>
+              <span class="inv-balance-value money">{{ getBalance(account.id) | currencyBrl }}</span>
+            </div>
+
+            @let summary = getInvestmentSummary(account.id);
+
+            <div class="inv-stats">
+              <div class="inv-stat">
+                <span class="inv-stat-label">Investido</span>
+                <span class="inv-stat-value money">{{ summary.netInvested | currencyBrl }}</span>
+              </div>
+              <div class="inv-stat">
+                <span class="inv-stat-label">Rendimento</span>
+                <span class="inv-stat-value money" [class.positive]="summary.totalYield >= 0" [class.negative]="summary.totalYield < 0">
+                  {{ summary.totalYield | currencyBrl }}
+                </span>
+              </div>
+              <div class="inv-stat">
+                <span class="inv-stat-label">%</span>
+                <span class="inv-stat-value" [class.positive]="summary.yieldPercentage >= 0" [class.negative]="summary.yieldPercentage < 0">
+                  {{ summary.yieldPercentage | number:'1.2-2' }}%
+                </span>
+              </div>
+            </div>
+
+            @if (account.maturityDate) {
+              <div class="inv-maturity">
+                Resgate: {{ account.maturityDate }}
+              </div>
+            }
+
+            <button class="btn-update-balance" (click)="openBalanceUpdate(account)">
+              Atualizar Saldo
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (checkingAccounts().length === 0 && investmentAccounts().length === 0) {
     <app-empty-state
       icon="🏦"
       title="Nenhuma conta cadastrada"
-      message="Adicione uma conta para começar a controlar suas finanças.">
+      message="Adicione uma conta para comecar a controlar suas financas.">
     </app-empty-state>
   }
 </div>
 
-<!-- Modal -->
+<!-- Account Form Modal -->
 <app-modal
   [isOpen]="showModal()"
   [title]="editingAccount() ? 'Editar Conta' : 'Nova Conta'"
   (close)="closeModal()">
 
   <form [formGroup]="form" (ngSubmit)="saveAccount()" class="account-form">
+    <!-- Account Type -->
+    <div class="form-group">
+      <label>Tipo de conta</label>
+      <div class="type-selector">
+        <button type="button" class="type-btn" [class.active]="selectedType() === 'checking'" (click)="selectType('checking')">
+          Corrente
+        </button>
+        <button type="button" class="type-btn" [class.active]="selectedType() === 'savings'" (click)="selectType('savings')">
+          Poupanca
+        </button>
+        <button type="button" class="type-btn" [class.active]="selectedType() === 'investment'" (click)="selectType('investment')">
+          Investimento
+        </button>
+      </div>
+    </div>
+
     <!-- Name -->
     <div class="form-group">
       <label for="accountName">Nome da conta</label>
@@ -79,6 +170,33 @@
         class="form-input" />
     </div>
 
+    <!-- Parent Account (for savings/investment) -->
+    @if (selectedType() !== 'checking') {
+      <div class="form-group">
+        <label for="parentAccount">Conta vinculada</label>
+        <select id="parentAccount" formControlName="parentAccountId" class="form-input">
+          <option value="">Nenhuma</option>
+          @for (acc of checkingAccounts(); track acc.id) {
+            <option [value]="acc.id">{{ acc.name }} - {{ acc.bank }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <!-- Investment dates -->
+    @if (selectedType() === 'investment') {
+      <div class="form-row">
+        <div class="form-group">
+          <label for="investmentDate">Data do investimento</label>
+          <input id="investmentDate" type="date" formControlName="investmentDate" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="maturityDate">Data de resgate</label>
+          <input id="maturityDate" type="date" formControlName="maturityDate" class="form-input" />
+        </div>
+      </div>
+    }
+
     <!-- Initial Balance -->
     <div class="form-group">
       <label for="accountBalance">Saldo inicial</label>
@@ -91,7 +209,7 @@
 
     <!-- Color Picker -->
     <div class="form-group">
-      <label>Cor do cartão</label>
+      <label>Cor</label>
       <div class="color-grid">
         @for (color of presetColors; track color) {
           <button
@@ -106,14 +224,16 @@
     </div>
 
     <!-- Preview -->
-    <div class="form-group">
-      <label>Pré-visualização</label>
-      <div class="card-preview" [style.background]="getGradient(selectedColor())">
-        <span class="preview-bank">{{ form.get('bank')?.value || 'Banco' }}</span>
-        <span class="preview-name">{{ form.get('name')?.value || 'Nome da conta' }}</span>
-        <span class="preview-balance">{{ (form.get('initialBalance')?.value || 0) | currencyBrl }}</span>
+    @if (selectedType() === 'checking') {
+      <div class="form-group">
+        <label>Pre-visualizacao</label>
+        <div class="card-preview" [style.background]="getGradient(selectedColor())">
+          <span class="preview-bank">{{ form.get('bank')?.value || 'Banco' }}</span>
+          <span class="preview-name">{{ form.get('name')?.value || 'Nome da conta' }}</span>
+          <span class="preview-balance">{{ (form.get('initialBalance')?.value || 0) | currencyBrl }}</span>
+        </div>
       </div>
-    </div>
+    }
 
     <!-- Actions -->
     <div class="form-actions">
@@ -123,4 +243,47 @@
       </button>
     </div>
   </form>
+</app-modal>
+
+<!-- Balance Update Modal -->
+<app-modal
+  [isOpen]="showBalanceModal()"
+  title="Atualizar Saldo"
+  (close)="closeBalanceModal()">
+
+  <div class="balance-update-form">
+    @let acc = balanceUpdateAccount();
+    @if (acc) {
+      <div class="balance-update-info">
+        <span class="balance-update-name">{{ acc.name }}</span>
+        <span class="balance-update-bank">{{ acc.bank }}</span>
+      </div>
+
+      <div class="form-group">
+        <label>Saldo registrado</label>
+        <div class="tracked-balance money">{{ getTrackedBalance() | currencyBrl }}</div>
+      </div>
+
+      <div class="form-group">
+        <label>Saldo real atual</label>
+        <app-currency-input
+          [formControl]="balanceAmountControl"
+          cssClass="form-input form-input-lg"
+          placeholder="0,00">
+        </app-currency-input>
+      </div>
+
+      <div class="yield-preview" [class.positive]="getYieldDifference() >= 0" [class.negative]="getYieldDifference() < 0">
+        <span class="yield-label">{{ getYieldDifference() >= 0 ? 'Rendimento' : 'Perda' }}</span>
+        <span class="yield-value money">{{ getYieldDifference() | currencyBrl }}</span>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="closeBalanceModal()">Cancelar</button>
+        <button type="button" class="btn-primary" (click)="saveBalanceUpdate()" [disabled]="getYieldDifference() === 0">
+          Salvar
+        </button>
+      </div>
+    }
+  </div>
 </app-modal>

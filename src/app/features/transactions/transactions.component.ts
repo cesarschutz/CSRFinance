@@ -21,14 +21,14 @@ import { Transaction, TransactionType, TransactionStatus } from '../../core/mode
 import { Category, CategoryType } from '../../core/models/category.model';
 import { Account } from '../../core/models/account.model';
 
-type FilterType = 'all' | 'expense' | 'income' | 'transfer';
+type FilterType = 'all' | 'expense' | 'income' | 'transfer' | 'deposits' | 'withdrawals' | 'yields';
 
 interface EditScopePendingData {
   id: string;
   data: Partial<Transaction> & {
     isRepeated?: boolean;
     repeatCount?: number;
-    repeatFrequency?: 'monthly' | 'semiannual' | 'annual';
+    repeatFrequency?: 'weekly' | 'monthly' | 'semiannual' | 'annual';
   };
 }
 
@@ -72,6 +72,9 @@ export class TransactionsComponent implements OnInit {
   showDetails = signal(false);
   editScopePendingData = signal<EditScopePendingData | null>(null);
 
+  // Reactive signal for current form type (FormControl.value is not reactive in computed signals)
+  currentFormType = signal<TransactionType>('expense');
+
   // Transaction Form
   transactionForm = new FormGroup({
     description: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -84,7 +87,7 @@ export class TransactionsComponent implements OnInit {
     isFixed: new FormControl<boolean>(false),
     isRepeated: new FormControl<boolean>(false),
     repeatCount: new FormControl<number>(2, { validators: [Validators.min(2)] }),
-    repeatFrequency: new FormControl<'monthly' | 'semiannual' | 'annual'>('monthly'),
+    repeatFrequency: new FormControl<'weekly' | 'monthly' | 'semiannual' | 'annual'>('monthly'),
   });
 
   // Transfer Form
@@ -97,11 +100,17 @@ export class TransactionsComponent implements OnInit {
     isFixed: new FormControl<boolean>(false),
     isRepeated: new FormControl<boolean>(false),
     repeatCount: new FormControl<number>(2, { validators: [Validators.min(2)] }),
-    repeatFrequency: new FormControl<'monthly' | 'semiannual' | 'annual'>('monthly'),
+    repeatFrequency: new FormControl<'weekly' | 'monthly' | 'semiannual' | 'annual'>('monthly'),
   });
 
   // Computed
   selectedAccountId = computed(() => this.accountService.selectedAccountId());
+
+  readonly isSavingsView = computed(() => {
+    const acc = this.accountService.selectedAccount();
+    if (!acc) return false;
+    return acc.type === 'savings' || acc.type === 'investment';
+  });
 
   summary = computed(() => {
     return this.transactionService.getSummary(
@@ -112,30 +121,80 @@ export class TransactionsComponent implements OnInit {
   });
 
   summaryCards = computed<SummaryCard[]>(() => {
+    const accountId = this.selectedAccountId();
+
+    if (this.isSavingsView() && accountId) {
+      const savingsTxns = this.transactionService.getSavingsTransactions(this.year(), this.month(), accountId);
+      const deposits = savingsTxns.deposits.reduce((s, t) => s + t.amount, 0);
+      const withdrawals = savingsTxns.withdrawals.reduce((s, t) => s + t.amount, 0);
+      const yields = savingsTxns.yields.reduce((s, t) => s + t.amount, 0);
+      return [
+        { label: 'Depositos', value: deposits, type: 'income', icon: '📥' },
+        { label: 'Saques', value: withdrawals, type: 'expense', icon: '📤' },
+        { label: 'Rendimentos', value: yields, type: 'balance', icon: '📈' },
+      ];
+    }
+
     const s = this.summary();
     return [
       { label: 'Receitas', value: s.income, type: 'income', icon: '📈' },
       { label: 'Despesas', value: s.expense, type: 'expense', icon: '📉' },
-      { label: 'Balanço', value: s.balance, type: 'balance', icon: '💰' },
+      { label: 'Balanco', value: s.balance, type: 'balance', icon: '💰' },
     ];
   });
 
   transactions = computed(() => {
+    const accountId = this.selectedAccountId();
     const all = this.transactionService.getByMonth(
       this.year(),
       this.month(),
-      this.selectedAccountId(),
+      accountId,
     );
 
     let filtered = all;
 
     const type = this.filterType();
-    if (type === 'income') {
-      filtered = filtered.filter(t => t.type === 'income');
-    } else if (type === 'expense') {
-      filtered = filtered.filter(t => t.type === 'expense');
-    } else if (type === 'transfer') {
-      filtered = filtered.filter(t => t.type === 'transfer');
+
+    // Savings view filters
+    if (this.isSavingsView() && accountId) {
+      if (type === 'deposits') {
+        // Show transfers IN to this savings account
+        const allTxns = this.transactionService.transactions();
+        const processedTransfers = new Set<string>();
+        filtered = allTxns.filter(t => {
+          if (t.type !== 'transfer' || !t.transferId) return false;
+          if (processedTransfers.has(t.transferId)) return false;
+          const d = new Date(t.date + 'T00:00:00');
+          if (d.getFullYear() !== this.year() || d.getMonth() !== this.month()) return false;
+          if (t.transferAccountId === accountId) {
+            processedTransfers.add(t.transferId);
+            return true;
+          }
+          return false;
+        });
+      } else if (type === 'withdrawals') {
+        filtered = filtered.filter(t => t.type === 'transfer' && t.accountId === accountId);
+        // Deduplicate
+        const seen = new Set<string>();
+        filtered = filtered.filter(t => {
+          if (t.transferId) {
+            if (seen.has(t.transferId)) return false;
+            seen.add(t.transferId);
+          }
+          return true;
+        });
+      } else if (type === 'yields') {
+        filtered = filtered.filter(t => t.type === 'yield');
+      }
+    } else {
+      // Regular checking view filters
+      if (type === 'income') {
+        filtered = filtered.filter(t => t.type === 'income');
+      } else if (type === 'expense') {
+        filtered = filtered.filter(t => t.type === 'expense');
+      } else if (type === 'transfer') {
+        filtered = filtered.filter(t => t.type === 'transfer');
+      }
     }
 
     const term = this.searchTerm().toLowerCase().trim();
@@ -145,19 +204,8 @@ export class TransactionsComponent implements OnInit {
       );
     }
 
-    // Deduplicate transfers (show only outgoing, i.e. where accountId is the source)
-    if (type !== 'transfer') {
-      // In "all" view, show only one side of transfers
-      const seen = new Set<string>();
-      filtered = filtered.filter(t => {
-        if (t.transferId) {
-          if (seen.has(t.transferId)) return false;
-          seen.add(t.transferId);
-        }
-        return true;
-      });
-    } else {
-      // In transfer filter, deduplicate
+    // Deduplicate transfers
+    if (type !== 'deposits') {
       const seen = new Set<string>();
       filtered = filtered.filter(t => {
         if (t.transferId) {
@@ -182,14 +230,15 @@ export class TransactionsComponent implements OnInit {
   })));
 
   filteredCategories = computed(() => {
-    const type = this.transactionForm.controls.type.value;
-    return this.categoryService.getByType(type === 'transfer' ? 'expense' : type);
+    const type = this.currentFormType();
+    const catType = (type === 'transfer' || type === 'yield') ? 'expense' : type;
+    return this.categoryService.getByType(catType as CategoryType);
   });
 
   modalTitle = computed(() => {
     const editing = this.editingTransaction();
     if (editing) return 'Editar Transação';
-    const type = this.transactionForm.controls.type.value;
+    const type = this.currentFormType();
     return type === 'income' ? 'Nova Receita' : 'Nova Despesa';
   });
 
@@ -310,6 +359,7 @@ export class TransactionsComponent implements OnInit {
   // Transaction modal
   openNewTransaction(type: TransactionType): void {
     this.editingTransaction.set(null);
+    this.currentFormType.set(type);
     this.transactionForm.reset({
       description: '',
       date: this.formatDateForInput(new Date()),
@@ -327,12 +377,15 @@ export class TransactionsComponent implements OnInit {
   }
 
   openEditTransaction(transaction: Transaction): void {
+    if (transaction.type === 'yield') return;
+    const editType = transaction.type === 'transfer' ? 'expense' : transaction.type;
     this.editingTransaction.set(transaction);
+    this.currentFormType.set(editType);
     this.transactionForm.setValue({
       description: transaction.description,
       date: transaction.date,
       amount: transaction.amount,
-      type: transaction.type === 'transfer' ? 'expense' : transaction.type,
+      type: editType,
       categoryId: transaction.categoryId,
       accountId: transaction.accountId,
       status: transaction.status,

@@ -360,6 +360,30 @@
   }
 }
 
+// Child account indentation
+.account-child {
+  padding-left: 16px;
+  font-size: 0.8rem;
+  opacity: 0.9;
+
+  .collapsed & {
+    display: none;
+  }
+}
+
+.child-connector {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  opacity: 0.5;
+  flex-shrink: 0;
+  width: 12px;
+}
+
+.account-dot-sm {
+  width: 8px;
+  height: 8px;
+}
+
 .account-dot {
   width: 10px;
   height: 10px;

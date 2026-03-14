@@ -1,16 +1,22 @@
 <!-- Page Header -->
 <div class="page-header">
-  <h1>Transações</h1>
+  <h1>{{ isSavingsView() ? 'Movimentacoes' : 'Transacoes' }}</h1>
   <div class="action-buttons">
-    <button class="btn-income" (click)="openNewTransaction('income')">
-      + Nova Receita
-    </button>
-    <button class="btn-expense" (click)="openNewTransaction('expense')">
-      + Nova Despesa
-    </button>
-    <button class="btn-transfer" (click)="openTransferModal()">
-      🔄 Transferência
-    </button>
+    @if (!isSavingsView()) {
+      <button class="btn-income" (click)="openNewTransaction('income')">
+        + Nova Receita
+      </button>
+      <button class="btn-expense" (click)="openNewTransaction('expense')">
+        + Nova Despesa
+      </button>
+      <button class="btn-transfer" (click)="openTransferModal()">
+        🔄 Transferencia
+      </button>
+    } @else {
+      <button class="btn-transfer" (click)="openTransferModal()">
+        📥 Depositar
+      </button>
+    }
   </div>
 </div>
 
@@ -27,34 +33,17 @@
 <!-- Filters -->
 <div class="filters">
   <div class="filter-tabs">
-    <button
-      class="filter-tab"
-      [class.active]="filterType() === 'all'"
-      (click)="setFilter('all')"
-    >
-      Todas
-    </button>
-    <button
-      class="filter-tab"
-      [class.active]="filterType() === 'expense'"
-      (click)="setFilter('expense')"
-    >
-      Despesas
-    </button>
-    <button
-      class="filter-tab"
-      [class.active]="filterType() === 'income'"
-      (click)="setFilter('income')"
-    >
-      Receitas
-    </button>
-    <button
-      class="filter-tab"
-      [class.active]="filterType() === 'transfer'"
-      (click)="setFilter('transfer')"
-    >
-      Transferências
-    </button>
+    @if (isSavingsView()) {
+      <button class="filter-tab" [class.active]="filterType() === 'all'" (click)="setFilter('all')">Todas</button>
+      <button class="filter-tab" [class.active]="filterType() === 'deposits'" (click)="setFilter('deposits')">Depositos</button>
+      <button class="filter-tab" [class.active]="filterType() === 'withdrawals'" (click)="setFilter('withdrawals')">Saques</button>
+      <button class="filter-tab" [class.active]="filterType() === 'yields'" (click)="setFilter('yields')">Rendimentos</button>
+    } @else {
+      <button class="filter-tab" [class.active]="filterType() === 'all'" (click)="setFilter('all')">Todas</button>
+      <button class="filter-tab" [class.active]="filterType() === 'expense'" (click)="setFilter('expense')">Despesas</button>
+      <button class="filter-tab" [class.active]="filterType() === 'income'" (click)="setFilter('income')">Receitas</button>
+      <button class="filter-tab" [class.active]="filterType() === 'transfer'" (click)="setFilter('transfer')">Transferencias</button>
+    }
   </div>
   <input
     type="text"
@@ -86,6 +75,8 @@
             <td>
               @if (txn.type === 'transfer') {
                 <span class="status-badge transfer">🔄</span>
+              } @else if (txn.type === 'yield') {
+                <span class="status-badge yield">📈</span>
               } @else {
                 <span class="status-badge" [class.settled]="txn.status === 'settled'" [class.pending]="txn.status === 'pending'">
                   {{ txn.status === 'settled' ? '✅' : '⏳' }}
@@ -94,18 +85,20 @@
             </td>
             <td class="date-cell">{{ formatDate(txn.date) }}</td>
             <td class="description-cell">
-              @if (isRecurring(txn)) { <span class="recurring-icon" title="Transação recorrente">🔁</span> }
+              @if (isRecurring(txn)) { <span class="recurring-icon" title="Transacao recorrente">🔁</span> }
               {{ txn.description }}
             </td>
             <td class="category-cell">
               @if (txn.type === 'transfer') {
                 <span class="transfer-label">{{ getTransferLabel(txn) }}</span>
+              } @else if (txn.type === 'yield') {
+                <span class="transfer-label yield-label">Rendimento</span>
               } @else {
                 {{ getCategoryName(txn.categoryId) }}
               }
             </td>
             <td class="account-cell">
-              @if (txn.type === 'transfer') {
+              @if (txn.type === 'transfer' || txn.type === 'yield') {
                 —
               } @else {
                 {{ getAccountName(txn.accountId) }}
@@ -114,18 +107,18 @@
             <td class="text-right">
               <span
                 class="amount money"
-                [class.income]="txn.type === 'income'"
+                [class.income]="txn.type === 'income' || txn.type === 'yield'"
                 [class.expense]="txn.type === 'expense'"
                 [class.transfer]="txn.type === 'transfer'"
               >
                 @if (txn.type === 'expense') { - }
-                @else if (txn.type === 'income') { + }
+                @else if (txn.type === 'income' || txn.type === 'yield') { + }
                 {{ txn.amount | currencyBrl }}
               </span>
             </td>
             <td class="text-center">
               <div class="actions">
-                @if (txn.type !== 'transfer') {
+                @if (txn.type !== 'transfer' && txn.type !== 'yield') {
                   <button class="btn-action btn-edit" (click)="openEditTransaction(txn)" aria-label="Editar transação">
                     ✏️
                   </button>
@@ -185,7 +178,7 @@
           </div>
         </div>
         <div class="card-actions">
-          @if (txn.type !== 'transfer') {
+          @if (txn.type !== 'transfer' && txn.type !== 'yield') {
             <button class="btn-action btn-edit" (click)="openEditTransaction(txn)" aria-label="Editar">
               ✏️ Editar
             </button>
@@ -313,6 +306,7 @@
                <input type="number" formControlName="repeatCount" class="modern-input repeat-count" min="2">
                <span class="repeat-text">vezes</span>
                <select formControlName="repeatFrequency" class="modern-select repeat-freq">
+                 <option value="weekly">Semanas</option>
                  <option value="monthly">Meses</option>
                  <option value="semiannual">Semestres</option>
                  <option value="annual">Anos</option>
@@ -438,6 +432,7 @@
                <span class="repeat-text">vezes</span>
                
                <select formControlName="repeatFrequency" class="modern-select repeat-freq">
+                 <option value="weekly">Semanas</option>
                  <option value="monthly">Meses</option>
                  <option value="semiannual">Semestres</option>
                  <option value="annual">Anos</option>

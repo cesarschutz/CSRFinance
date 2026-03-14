@@ -1,8 +1,9 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
 import { TransactionService } from '../../../core/services/transaction.service';
+import { Account } from '../../../core/models/account.model';
 
 import { CurrencyBrlPipe } from '../../pipes/currency-brl.pipe';
 
@@ -50,7 +51,7 @@ interface NavItem {
             </button>
             <button class="dropdown-item option-transfer" (click)="openTransferForm()">
               <span class="dropdown-icon">🔄</span>
-              <span>Transferência</span>
+              <span>Transferencia</span>
             </button>
           </div>
         }
@@ -87,7 +88,45 @@ interface NavItem {
           }
         </button>
 
-        @for (account of accountService.accounts(); track account.id) {
+        @for (account of accountService.checkingAccounts(); track account.id) {
+          <button class="account-item"
+                  [class.active]="accountService.selectedAccountId() === account.id"
+                  (click)="accountService.selectAccount(account.id)">
+            <span class="account-dot" [style.background]="account.color"></span>
+            @if (!collapsed) {
+              <span class="account-name">{{ account.name }}</span>
+              <span class="account-balance money">
+                {{ (transactionService.accountBalances().get(account.id) ?? 0) | currencyBrl }}
+              </span>
+            }
+          </button>
+
+          <!-- Child savings/investment accounts -->
+          @for (child of getChildAccounts(account.id); track child.id) {
+            <button class="account-item account-child"
+                    [class.active]="accountService.selectedAccountId() === child.id"
+                    (click)="accountService.selectAccount(child.id)">
+              @if (!collapsed) {
+                <span class="child-connector">└</span>
+              }
+              <span class="account-dot account-dot-sm" [style.background]="child.color"></span>
+              @if (!collapsed) {
+                <span class="account-name">{{ child.name }}</span>
+                <span class="account-balance money">
+                  {{ (transactionService.accountBalances().get(child.id) ?? 0) | currencyBrl }}
+                </span>
+              }
+            </button>
+          }
+        }
+
+        <!-- Standalone savings/investment accounts (no parent) -->
+        @if (standaloneInvestments().length > 0 && !collapsed) {
+          <div class="accounts-header" style="margin-top: 8px">
+            <span class="accounts-title">Investimentos</span>
+          </div>
+        }
+        @for (account of standaloneInvestments(); track account.id) {
           <button class="account-item"
                   [class.active]="accountService.selectedAccountId() === account.id"
                   (click)="accountService.selectAccount(account.id)">
@@ -100,12 +139,11 @@ interface NavItem {
             }
           </button>
         }
-
       </div>
 
       <div class="sidebar-footer">
         @if (!collapsed) {
-          <span class="footer-label">Patrimônio Total</span>
+          <span class="footer-label">Patrimonio Total</span>
           <span class="footer-value money">
             {{ transactionService.totalBalance() | currencyBrl }}
           </span>
@@ -120,23 +158,31 @@ interface NavItem {
 export class SidebarComponent {
   @Input() collapsed = false;
   @Output() collapsedChange = new EventEmitter<boolean>();
-  
+
   private router = inject(Router);
   private elementRef = inject(ElementRef);
-
 
   navItems: NavItem[] = [
     { label: 'Dashboard', icon: '📊', route: '/dashboard' },
     { label: 'Contas', icon: '🏦', route: '/accounts' },
-    { label: 'Transações', icon: '💳', route: '/transactions' },
-    { label: 'Relatórios', icon: '📈', route: '/reports' },
+    { label: 'Transacoes', icon: '💳', route: '/transactions' },
+    { label: 'Relatorios', icon: '📈', route: '/reports' },
     { label: 'Categorias', icon: '🏷️', route: '/categories' },
+    { label: 'Investimentos', icon: '💰', route: '/investments' },
   ];
+
+  readonly standaloneInvestments = computed(() =>
+    this.accountService.allInvestmentAccounts().filter(a => !a.parentAccountId)
+  );
 
   constructor(
     public accountService: AccountService,
     public transactionService: TransactionService,
   ) {}
+
+  getChildAccounts(parentId: string): Account[] {
+    return this.accountService.getChildAccounts(parentId);
+  }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {

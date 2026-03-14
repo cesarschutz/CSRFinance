@@ -41,10 +41,25 @@ export class DashboardComponent {
     this.month.set(event.month);
   }
 
+  // Is the selected account a savings/investment account?
+  readonly isSavingsView = computed(() => {
+    const acc = this.accountService.selectedAccount();
+    if (!acc) return false;
+    return acc.type === 'savings' || acc.type === 'investment';
+  });
+
+  readonly hasInvestmentAccounts = computed(() =>
+    this.accountService.allInvestmentAccounts().length > 0
+  );
+
+  readonly investmentsSummary = computed(() => {
+    this.transactionService.transactions();
+    return this.transactionService.getAllInvestmentsSummary();
+  });
+
   // --- Summary cards ---
   summaryCards = computed<SummaryCard[]>(() => {
     const accountId = this.accountService.selectedAccountId();
-    // Explicitly depend on transactions signal for reactivity
     this.transactionService.transactions();
     const summary = this.transactionService.getSummary(this.year(), this.month(), accountId);
 
@@ -56,23 +71,46 @@ export class DashboardComponent {
       style: 'currency', currency: 'BRL',
     }).format(v);
 
+    // Savings/Investment view
+    if (this.isSavingsView() && accountId) {
+      const savingsTxns = this.transactionService.getSavingsTransactions(this.year(), this.month(), accountId);
+      const deposits = savingsTxns.deposits.reduce((s, t) => s + t.amount, 0);
+      const withdrawals = savingsTxns.withdrawals.reduce((s, t) => s + t.amount, 0);
+      const yields = savingsTxns.yields.reduce((s, t) => s + t.amount, 0);
+
+      return [
+        { label: 'Saldo Atual', value: currentBalance, type: 'balance', icon: '💰' },
+        { label: 'Depositos', value: deposits, type: 'income', icon: '📥' },
+        { label: 'Saques', value: withdrawals, type: 'expense', icon: '📤' },
+        { label: 'Rendimentos', value: yields, type: 'neutral', icon: '📈' },
+      ];
+    }
+
+    // Regular checking view
     const incomeTotal = summary.income + summary.transferIn;
     const expenseTotal = summary.expense + summary.transferOut;
 
     const incomeDetail = accountId && summary.transferIn > 0
-      ? `${fmt(summary.income)} receitas + ${fmt(summary.transferIn)} transferências`
+      ? `${fmt(summary.income)} receitas + ${fmt(summary.transferIn)} transferencias`
       : undefined;
 
     const expenseDetail = accountId && summary.transferOut > 0
-      ? `${fmt(summary.expense)} despesas + ${fmt(summary.transferOut)} transferências`
+      ? `${fmt(summary.expense)} despesas + ${fmt(summary.transferOut)} transferencias`
       : undefined;
 
-    return [
+    const cards: SummaryCard[] = [
       { label: 'Saldo Atual', value: currentBalance, type: 'balance', icon: '💰' },
       { label: 'Receitas', value: accountId ? incomeTotal : summary.income, type: 'income', icon: '📈', detail: incomeDetail },
       { label: 'Despesas', value: accountId ? expenseTotal : summary.expense, type: 'expense', icon: '📉', detail: expenseDetail },
-      { label: 'Balanço Mensal', value: summary.balance, type: 'neutral', icon: '📊' },
     ];
+
+    if (summary.investment > 0) {
+      cards.push({ label: 'Investimentos', value: summary.investment, type: 'neutral', icon: '💰' });
+    } else {
+      cards.push({ label: 'Balanco Mensal', value: summary.balance, type: 'neutral', icon: '📊' });
+    }
+
+    return cards;
   });
 
   // --- Donut chart (expenses by category) ---
