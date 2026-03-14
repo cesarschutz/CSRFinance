@@ -7,11 +7,14 @@ import { ChartConfiguration } from 'chart.js';
 import { TransactionService } from '../../core/services/transaction.service';
 import { AccountService } from '../../core/services/account.service';
 import { CategoryService } from '../../core/services/category.service';
+import { ContextService } from '../../core/services/context.service';
 
 import { MonthPickerComponent } from '../../shared/components/month-picker/month-picker.component';
 import { SummaryCardsComponent, SummaryCard } from '../../shared/components/summary-cards/summary-cards.component';
 import { DonutChartComponent, DonutSegment } from '../../shared/components/donut-chart/donut-chart.component';
 import { CurrencyBrlPipe } from '../../shared/pipes/currency-brl.pipe';
+
+type AccountFilter = 'all' | 'checking' | 'credit_card';
 
 @Component({
   selector: 'app-dashboard',
@@ -32,29 +35,22 @@ export class DashboardComponent {
   private transactionService = inject(TransactionService);
   private accountService = inject(AccountService);
   private categoryService = inject(CategoryService);
+  contextService = inject(ContextService);
 
   year = signal(new Date().getFullYear());
   month = signal(new Date().getMonth());
+  accountFilter = signal<AccountFilter>('all');
 
   onMonthChange(event: { year: number; month: number }): void {
     this.year.set(event.year);
     this.month.set(event.month);
   }
 
-  readonly isSavingsView = computed(() => {
-    const acc = this.accountService.selectedAccount();
-    if (!acc) return false;
-    return acc.type === 'savings' || acc.type === 'investment';
-  });
-
-  readonly hasInvestmentAccounts = computed(() =>
-    this.accountService.allInvestmentAccounts().length > 0
-  );
-
-  readonly investmentsSummary = computed(() => {
-    this.transactionService.transactions();
-    return this.transactionService.getAllInvestmentsSummary();
-  });
+  setAccountFilter(filter: AccountFilter): void {
+    this.accountFilter.set(filter);
+    // Clear account selection when switching filter
+    this.accountService.selectAccount(null);
+  }
 
   // --- Summary cards ---
   summaryCards = computed<SummaryCard[]>(() => {
@@ -70,20 +66,6 @@ export class DashboardComponent {
       style: 'currency', currency: 'BRL',
     }).format(v);
 
-    if (this.isSavingsView() && accountId) {
-      const savingsTxns = this.transactionService.getSavingsTransactions(this.year(), this.month(), accountId);
-      const deposits = savingsTxns.deposits.reduce((s, t) => s + t.amount, 0);
-      const withdrawals = savingsTxns.withdrawals.reduce((s, t) => s + t.amount, 0);
-      const yields = savingsTxns.yields.reduce((s, t) => s + t.amount, 0);
-
-      return [
-        { label: 'Saldo Atual', value: currentBalance, type: 'balance', icon: '💰' },
-        { label: 'Depositos', value: deposits, type: 'income', icon: '📥' },
-        { label: 'Saques', value: withdrawals, type: 'expense', icon: '📤' },
-        { label: 'Rendimentos', value: yields, type: 'neutral', icon: '📈' },
-      ];
-    }
-
     const incomeTotal = summary.income + summary.transferIn;
     const expenseTotal = summary.expense + summary.transferOut;
 
@@ -95,22 +77,15 @@ export class DashboardComponent {
       ? `${fmt(summary.expense)} despesas + ${fmt(summary.transferOut)} transferências`
       : undefined;
 
-    const cards: SummaryCard[] = [
-      { label: 'Saldo Atual', value: currentBalance, type: 'balance', icon: '💰' },
+    return [
+      { label: 'Saldo', value: currentBalance, type: 'balance', icon: '💰' },
       { label: 'Receitas', value: accountId ? incomeTotal : summary.income, type: 'income', icon: '📈', detail: incomeDetail },
       { label: 'Despesas', value: accountId ? expenseTotal : summary.expense, type: 'expense', icon: '📉', detail: expenseDetail },
+      { label: 'Balanço', value: summary.balance, type: 'neutral', icon: '📊' },
     ];
-
-    if (summary.investment > 0) {
-      cards.push({ label: 'Investimentos', value: summary.investment, type: 'neutral', icon: '💰' });
-    } else {
-      cards.push({ label: 'Balanço Mensal', value: summary.balance, type: 'neutral', icon: '📊' });
-    }
-
-    return cards;
   });
 
-  // --- Month-over-month trend indicators ---
+  // --- Month-over-month trends ---
   readonly monthTrends = computed(() => {
     const accountId = this.accountService.selectedAccountId();
     this.transactionService.transactions();
@@ -124,7 +99,46 @@ export class DashboardComponent {
     return this.transactionService.getExpenseInsights(this.year(), this.month(), accountId);
   });
 
-  // --- Donut chart (expenses by category) ---
+  // --- Bills (pending vs settled) ---
+  readonly bills = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    const txns = this.transactionService.getByMonth(this.year(), this.month(), accountId);
+    const expenses = txns.filter(t => t.type === 'expense');
+
+    const pending = expenses.filter(t => t.status === 'pending');
+    const settled = expenses.filter(t => t.status === 'settled');
+
+    const totalPending = pending.reduce((s, t) => s + t.amount, 0);
+    const totalSettled = settled.reduce((s, t) => s + t.amount, 0);
+
+    return {
+      pending: pending.map(t => {
+        const cat = this.categoryService.getById(t.categoryId);
+        return {
+          ...t,
+          categoryName: cat?.name ?? 'Sem categoria',
+          categoryIcon: cat?.icon ?? '❓',
+          formattedDate: new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+        };
+      }).sort((a, b) => new Date(a.date + 'T00:00:00').getTime() - new Date(b.date + 'T00:00:00').getTime()),
+      settled: settled.map(t => {
+        const cat = this.categoryService.getById(t.categoryId);
+        return {
+          ...t,
+          categoryName: cat?.name ?? 'Sem categoria',
+          categoryIcon: cat?.icon ?? '❓',
+          formattedDate: new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+        };
+      }),
+      totalPending,
+      totalSettled,
+      totalExpenses: totalPending + totalSettled,
+      pendingCount: pending.length,
+      settledCount: settled.length,
+    };
+  });
+
+  // --- Donut chart ---
   donutSegments = computed<DonutSegment[]>(() => {
     const accountId = this.accountService.selectedAccountId();
     this.transactionService.transactions();
@@ -143,11 +157,10 @@ export class DashboardComponent {
         });
       }
     });
-
     return segments.sort((a, b) => b.value - a.value);
   });
 
-  // --- Bar chart (last 6 months: income vs expenses) ---
+  // --- Bar chart ---
   barChartData = computed<ChartConfiguration<'bar'>['data']>(() => {
     const accountId = this.accountService.selectedAccountId();
     this.transactionService.transactions();
@@ -159,16 +172,16 @@ export class DashboardComponent {
         {
           label: 'Receitas',
           data: monthlyTotals.map(m => m.income),
-          backgroundColor: 'rgba(0, 184, 148, 0.8)',
-          borderColor: '#00B894',
+          backgroundColor: 'rgba(52, 211, 153, 0.7)',
+          borderColor: '#34D399',
           borderWidth: 1,
           borderRadius: 8,
         },
         {
           label: 'Despesas',
           data: monthlyTotals.map(m => m.expense),
-          backgroundColor: 'rgba(232, 67, 147, 0.8)',
-          borderColor: '#E84393',
+          backgroundColor: 'rgba(251, 113, 133, 0.7)',
+          borderColor: '#FB7185',
           borderWidth: 1,
           borderRadius: 8,
         },
@@ -186,15 +199,15 @@ export class DashboardComponent {
           usePointStyle: true,
           padding: 20,
           font: { family: "'DM Sans', sans-serif", size: 12, weight: 600 },
-          color: '#6B7194',
+          color: '#9394A5',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(26, 29, 46, 0.95)',
-        borderColor: 'rgba(108, 92, 231, 0.2)',
+        backgroundColor: 'rgba(18, 18, 30, 0.95)',
+        borderColor: 'rgba(129, 140, 248, 0.2)',
         borderWidth: 1,
-        titleColor: '#F1F5F9',
-        bodyColor: '#94A3B8',
+        titleColor: '#EEEEF4',
+        bodyColor: '#9394A5',
         boxPadding: 4,
         padding: 12,
         cornerRadius: 10,
@@ -213,16 +226,15 @@ export class DashboardComponent {
         grid: { display: false },
         ticks: {
           font: { family: "'DM Sans', sans-serif", size: 12, weight: 500 },
-          color: '#6B7194',
+          color: '#5C5D72',
         },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(108, 92, 231, 0.04)' },
-        border: { dash: [4, 4] },
+        grid: { color: 'rgba(255, 255, 255, 0.03)' },
         ticks: {
-          font: { family: "'Space Mono', monospace", size: 11 },
-          color: '#6B7194',
+          font: { family: "'DM Sans', monospace", size: 11 },
+          color: '#5C5D72',
           callback: (value) => new Intl.NumberFormat('pt-BR', {
             style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
           }).format(value as number),
@@ -231,7 +243,7 @@ export class DashboardComponent {
     },
   };
 
-  // --- Top 3 categories ---
+  // --- Top categories ---
   readonly topCategories = computed(() => {
     const accountId = this.accountService.selectedAccountId();
     this.transactionService.transactions();
@@ -245,17 +257,11 @@ export class DashboardComponent {
     expensesByCategory.forEach((value, categoryId) => {
       const cat = this.categoryService.getById(categoryId);
       if (cat) {
-        items.push({
-          icon: cat.icon,
-          name: cat.name,
-          value,
-          color: cat.color,
-          percentage: total > 0 ? (value / total) * 100 : 0,
-        });
+        items.push({ icon: cat.icon, name: cat.name, value, color: cat.color, percentage: total > 0 ? (value / total) * 100 : 0 });
       }
     });
 
-    return items.sort((a, b) => b.value - a.value).slice(0, 3);
+    return items.sort((a, b) => b.value - a.value).slice(0, 5);
   });
 
   // --- Recent transactions ---
@@ -264,7 +270,7 @@ export class DashboardComponent {
     const transactions = this.transactionService
       .getByMonth(this.year(), this.month(), accountId)
       .sort((a, b) => new Date(b.date + 'T00:00:00').getTime() - new Date(a.date + 'T00:00:00').getTime())
-      .slice(0, 5);
+      .slice(0, 8);
 
     return transactions.map(t => {
       const category = this.categoryService.getById(t.categoryId);
@@ -273,11 +279,32 @@ export class DashboardComponent {
         categoryName: category?.name ?? 'Sem categoria',
         categoryIcon: category?.icon ?? '❓',
         formattedDate: new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
+          day: '2-digit', month: '2-digit',
         }),
       };
     });
   });
+
+  // --- Credit card summary ---
+  readonly creditCards = computed(() => {
+    return this.accountService.creditCardAccounts().map(card => {
+      const balance = this.transactionService.getAccountBalance(card.id);
+      const txns = this.transactionService.getByMonth(this.year(), this.month(), card.id);
+      const expenses = txns.filter(t => t.type === 'expense');
+      const totalMonth = expenses.reduce((s, t) => s + t.amount, 0);
+      const pendingMonth = expenses.filter(t => t.status === 'pending').reduce((s, t) => s + t.amount, 0);
+      const paidMonth = expenses.filter(t => t.status === 'settled').reduce((s, t) => s + t.amount, 0);
+
+      return {
+        ...card,
+        balance: Math.abs(balance),
+        totalMonth,
+        pendingMonth,
+        paidMonth,
+        usagePercent: card.creditLimit ? (totalMonth / card.creditLimit) * 100 : 0,
+      };
+    });
+  });
+
+  readonly hasCreditCards = computed(() => this.accountService.creditCardAccounts().length > 0);
 }

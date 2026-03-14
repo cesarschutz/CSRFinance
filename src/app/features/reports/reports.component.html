@@ -551,6 +551,174 @@
         }
       }
 
+      <!-- ================================ -->
+      <!-- Tab - Anual por Categorias       -->
+      <!-- ================================ -->
+      @case ('annual-categories') {
+        @if (hasAnnualData()) {
+          <section class="report-section fade-in">
+            <div class="annual-header">
+              <h3 class="section-subtitle">Gastos Anuais por Categoria — {{ selectedYear() }}</h3>
+            </div>
+
+            <div class="annual-table-wrapper">
+              <table class="annual-table">
+                <thead>
+                  <tr>
+                    <th class="th-category">Categoria</th>
+                    @for (label of monthLabelsShort; track label) {
+                      <th class="th-month">{{ label }}</th>
+                    }
+                    <th class="th-total">Total</th>
+                    <th class="th-avg">Média</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of annualCategoryTotals(); track item.categoryId) {
+                    <tr>
+                      <td class="td-category">
+                        <span class="cat-icon">{{ item.categoryIcon }}</span>
+                        <span class="cat-name">{{ item.categoryName }}</span>
+                      </td>
+                      @for (val of item.monthly; track $index) {
+                        <td class="td-month" [class.has-value]="val > 0">
+                          @if (val > 0) {
+                            {{ val | currencyBrl }}
+                          } @else {
+                            <span class="no-value">—</span>
+                          }
+                        </td>
+                      }
+                      <td class="td-total money">{{ item.total | currencyBrl }}</td>
+                      <td class="td-avg money">{{ item.average | currencyBrl }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+        } @else {
+          <app-empty-state
+            icon="📅"
+            title="Sem dados anuais"
+            message="Registre despesas para ver o relatório anual por categoria."
+          />
+        }
+      }
+
+      <!-- ================================ -->
+      <!-- Tab - Despesas Fixas Anual       -->
+      <!-- ================================ -->
+      @case ('annual-fixed') {
+        @if (annualFixedExpenses().length > 0) {
+          <section class="report-section fade-in">
+            <h3 class="section-subtitle">Despesas Fixas / Recorrentes — {{ selectedYear() }}</h3>
+
+            <div class="fixed-list">
+              @for (item of annualFixedExpenses(); track item.description; let i = $index) {
+                <div class="fixed-item" [style.animation-delay]="i * 40 + 'ms'">
+                  <div class="fixed-header">
+                    <span class="fixed-icon">{{ item.categoryIcon }}</span>
+                    <div class="fixed-info">
+                      <span class="fixed-name">{{ item.description }}</span>
+                      <span class="fixed-meta">{{ item.categoryName }} · {{ item.monthsActive }} meses</span>
+                    </div>
+                    <div class="fixed-totals">
+                      <span class="fixed-total money">{{ item.total | currencyBrl }}</span>
+                      <span class="fixed-avg">média {{ item.average | currencyBrl }}/mês</span>
+                    </div>
+                  </div>
+                  <div class="fixed-months">
+                    @for (val of item.monthly; track $index; let m = $index) {
+                      <div class="fixed-month-cell"
+                           [class.has-value]="val > 0"
+                           [title]="monthLabelsShort[m] + ': ' + fmt(val)">
+                        <span class="fixed-month-label">{{ monthLabelsShort[m] }}</span>
+                        @if (val > 0) {
+                          <span class="fixed-month-value money">{{ val | currencyBrl }}</span>
+                        } @else {
+                          <span class="fixed-month-empty">—</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        } @else {
+          <app-empty-state
+            icon="📌"
+            title="Sem despesas fixas"
+            message="Despesas marcadas como fixas ou recorrentes aparecerão aqui."
+          />
+        }
+      }
+
+      <!-- ================================ -->
+      <!-- Tab - Comparativo Mês a Mês     -->
+      <!-- ================================ -->
+      @case ('annual-heatmap') {
+        @if (monthlyHeatmap().data.length > 0) {
+          <section class="report-section fade-in">
+            <h3 class="section-subtitle">Resumo Mensal — {{ selectedYear() }}</h3>
+
+            <!-- Annual summary -->
+            <div class="annual-summary-row">
+              <div class="annual-stat">
+                <span class="annual-stat-label">Total Receitas</span>
+                <span class="annual-stat-value money income">{{ monthlyHeatmap().totalIncome | currencyBrl }}</span>
+              </div>
+              <div class="annual-stat">
+                <span class="annual-stat-label">Total Despesas</span>
+                <span class="annual-stat-value money expense">{{ monthlyHeatmap().totalExpense | currencyBrl }}</span>
+              </div>
+              <div class="annual-stat">
+                <span class="annual-stat-label">Balanço Anual</span>
+                <span class="annual-stat-value money"
+                      [class.income]="monthlyHeatmap().totalBalance >= 0"
+                      [class.expense]="monthlyHeatmap().totalBalance < 0">
+                  {{ monthlyHeatmap().totalBalance | currencyBrl }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Monthly cards -->
+            <div class="heatmap-grid">
+              @for (item of monthlyHeatmap().data; track item.month; let i = $index) {
+                <div class="heatmap-card" [style.animation-delay]="i * 30 + 'ms'"
+                     [class.positive-month]="item.balance > 0"
+                     [class.negative-month]="item.balance < 0">
+                  <span class="heatmap-month">{{ item.month }}</span>
+                  <div class="heatmap-row">
+                    <span class="heatmap-label">Receitas</span>
+                    <span class="heatmap-value money income">{{ item.income | currencyBrl }}</span>
+                  </div>
+                  <div class="heatmap-row">
+                    <span class="heatmap-label">Despesas</span>
+                    <span class="heatmap-value money expense">{{ item.expense | currencyBrl }}</span>
+                  </div>
+                  <div class="heatmap-row heatmap-balance">
+                    <span class="heatmap-label">Balanço</span>
+                    <span class="heatmap-value money"
+                          [class.income]="item.balance >= 0"
+                          [class.expense]="item.balance < 0">
+                      {{ item.balance | currencyBrl }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        } @else {
+          <app-empty-state
+            icon="🗓️"
+            title="Sem dados mensais"
+            message="Registre transações para ver o comparativo mensal."
+          />
+        }
+      }
+
       <!-- ========================== -->
       <!-- Tab 8 - Investimentos      -->
       <!-- ========================== -->

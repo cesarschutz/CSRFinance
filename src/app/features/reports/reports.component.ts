@@ -12,7 +12,7 @@ import { DonutChartComponent, DonutSegment } from '../../shared/components/donut
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { CurrencyBrlPipe } from '../../shared/pipes/currency-brl.pipe';
 
-export type ReportTab = 'category' | 'daily' | 'balance' | 'patrimony' | 'cashflow' | 'comparison' | 'insights' | 'investments';
+export type ReportTab = 'category' | 'daily' | 'balance' | 'patrimony' | 'cashflow' | 'comparison' | 'insights' | 'annual-categories' | 'annual-fixed' | 'annual-heatmap' | 'investments';
 
 export interface CategoryReport {
   id: string;
@@ -81,6 +81,9 @@ export class ReportsComponent {
       { id: 'cashflow', label: 'Fluxo de Caixa', icon: '💸' },
       { id: 'comparison', label: 'Comparativo', icon: '🔄' },
       { id: 'insights', label: 'Análises', icon: '🧠' },
+      { id: 'annual-categories' as ReportTab, label: 'Anual Categorias', icon: '📅' },
+      { id: 'annual-fixed' as ReportTab, label: 'Despesas Fixas', icon: '📌' },
+      { id: 'annual-heatmap' as ReportTab, label: 'Mês a Mês', icon: '🗓️' },
     ];
 
     if (this.hasInvestmentAccounts()) {
@@ -795,4 +798,118 @@ export class ReportsComponent {
   readonly fmt = (v: number) => new Intl.NumberFormat('pt-BR', {
     style: 'currency', currency: 'BRL',
   }).format(v);
+
+  // ==============================
+  // Annual Reports
+  // ==============================
+
+  readonly selectedYear = computed(() => this.year());
+
+  /** Annual totals by category */
+  readonly annualCategoryTotals = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
+    const year = this.year();
+
+    const categoryTotals = new Map<string, { total: number; monthly: number[] }>();
+
+    for (let m = 0; m < 12; m++) {
+      const catMap = this.transactionService.getExpensesByCategory(year, m, accountId);
+      catMap.forEach((amount, catId) => {
+        if (!categoryTotals.has(catId)) {
+          categoryTotals.set(catId, { total: 0, monthly: new Array(12).fill(0) });
+        }
+        const entry = categoryTotals.get(catId)!;
+        entry.total += amount;
+        entry.monthly[m] = amount;
+      });
+    }
+
+    return Array.from(categoryTotals.entries())
+      .map(([catId, data]) => {
+        const cat = this.categoryService.getById(catId);
+        return {
+          categoryId: catId,
+          categoryName: cat?.name ?? 'Desconhecida',
+          categoryIcon: cat?.icon ?? '❓',
+          categoryColor: cat?.color ?? '#6B7194',
+          total: Math.round(data.total * 100) / 100,
+          monthly: data.monthly.map(v => Math.round(v * 100) / 100),
+          average: Math.round((data.total / 12) * 100) / 100,
+        };
+      })
+      .sort((a, b) => b.total - a.total);
+  });
+
+  /** Annual fixed expenses */
+  readonly annualFixedExpenses = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
+    const year = this.year();
+
+    // Group by description (fixed expenses tend to have same description)
+    const fixedMap = new Map<string, { total: number; monthly: number[]; categoryId: string; count: number }>();
+
+    for (let m = 0; m < 12; m++) {
+      const txns = this.transactionService.getByMonth(year, m, accountId)
+        .filter(t => t.type === 'expense' && (t.isFixed || t.recurringId));
+
+      txns.forEach(t => {
+        const key = t.description.toLowerCase().trim();
+        if (!fixedMap.has(key)) {
+          fixedMap.set(key, { total: 0, monthly: new Array(12).fill(0), categoryId: t.categoryId, count: 0 });
+        }
+        const entry = fixedMap.get(key)!;
+        entry.total += t.amount;
+        entry.monthly[m] = t.amount;
+        entry.count++;
+      });
+    }
+
+    return Array.from(fixedMap.entries())
+      .map(([desc, data]) => {
+        const cat = this.categoryService.getById(data.categoryId);
+        return {
+          description: desc.charAt(0).toUpperCase() + desc.slice(1),
+          categoryName: cat?.name ?? '',
+          categoryIcon: cat?.icon ?? '',
+          total: Math.round(data.total * 100) / 100,
+          monthly: data.monthly,
+          monthsActive: data.count,
+          average: data.count > 0 ? Math.round((data.total / data.count) * 100) / 100 : 0,
+        };
+      })
+      .sort((a, b) => b.total - a.total);
+  });
+
+  /** Month-by-month heatmap data */
+  readonly monthlyHeatmap = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
+    const year = this.year();
+
+    const months: string[] = [];
+    const data: { month: string; income: number; expense: number; balance: number }[] = [];
+
+    for (let m = 0; m < 12; m++) {
+      const monthLabel = new Date(year, m, 1).toLocaleDateString('pt-BR', { month: 'short' });
+      const summary = this.transactionService.getSummary(year, m, accountId);
+      months.push(monthLabel);
+      data.push({
+        month: monthLabel,
+        income: summary.income,
+        expense: summary.expense,
+        balance: summary.income - summary.expense,
+      });
+    }
+
+    const totalIncome = data.reduce((s, d) => s + d.income, 0);
+    const totalExpense = data.reduce((s, d) => s + d.expense, 0);
+
+    return { months, data, totalIncome, totalExpense, totalBalance: totalIncome - totalExpense };
+  });
+
+  readonly monthLabelsShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+  hasAnnualData = computed(() => this.annualCategoryTotals().length > 0);
 }

@@ -1122,3 +1122,328 @@
   font-weight: 700;
   color: var(--text);
 }
+
+// ==============================
+// Annual Tables
+// ==============================
+
+.annual-header {
+  margin-bottom: 8px;
+}
+
+.annual-table-wrapper {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-bento);
+  overflow-x: auto;
+  @include custom-scrollbar;
+}
+
+.annual-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+
+  th, td {
+    padding: 10px 8px;
+    text-align: right;
+    font-size: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+
+  th {
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.65rem;
+    background: rgba(255, 255, 255, 0.02);
+    position: sticky;
+    top: 0;
+  }
+}
+
+.th-category, .td-category {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: var(--surface-solid);
+  z-index: 2;
+  min-width: 140px;
+}
+
+.td-category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cat-icon {
+  font-size: 1rem;
+}
+
+.cat-name {
+  @include truncate;
+}
+
+.th-month {
+  min-width: 80px;
+}
+
+.td-month {
+  color: var(--text-muted);
+  font-weight: 500;
+
+  &.has-value {
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+}
+
+.no-value {
+  color: rgba(255, 255, 255, 0.1);
+}
+
+.th-total, .td-total {
+  min-width: 100px;
+  font-weight: 800 !important;
+  color: var(--expense) !important;
+  background: rgba(251, 113, 133, 0.04);
+}
+
+.th-avg, .td-avg {
+  min-width: 90px;
+  color: var(--text-secondary) !important;
+}
+
+// ==============================
+// Fixed Expenses
+// ==============================
+
+.fixed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fixed-item {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+  animation: fadeInUp 0.35s ease-out both;
+}
+
+.fixed-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.fixed-icon {
+  font-size: 1.25rem;
+}
+
+.fixed-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fixed-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.fixed-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.fixed-totals {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.fixed-total {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--expense);
+}
+
+.fixed-avg {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.fixed-months {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+
+  @include tablet {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+.fixed-month-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: var(--radius-xs);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+
+  &.has-value {
+    background: rgba(251, 113, 133, 0.06);
+    border-color: rgba(251, 113, 133, 0.1);
+  }
+}
+
+.fixed-month-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.fixed-month-value {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.fixed-month-empty {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.1);
+}
+
+// ==============================
+// Monthly Heatmap
+// ==============================
+
+.annual-summary-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  @include tablet {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.annual-stat {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.annual-stat-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.annual-stat-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  @include tablet {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include desktop {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @include wide {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.heatmap-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeInUp 0.3s ease-out both;
+  transition: transform var(--transition-fast);
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &.positive-month {
+    border-top: 2px solid var(--income);
+  }
+
+  &.negative-month {
+    border-top: 2px solid var(--expense);
+  }
+}
+
+.heatmap-month {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text);
+  text-transform: capitalize;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.heatmap-row {
+  @include flex-between;
+  gap: 8px;
+
+  &.heatmap-balance {
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+}
+
+.heatmap-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.heatmap-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+}

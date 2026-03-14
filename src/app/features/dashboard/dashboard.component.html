@@ -1,7 +1,19 @@
 <div class="dashboard">
   <!-- Page Header -->
   <div class="page-header">
-    <h1 class="page-title">Dashboard</h1>
+    <div class="page-header-left">
+      <h1 class="page-title">Dashboard</h1>
+      <div class="trend-pills">
+        <span class="pill" [class.positive]="monthTrends().incomeChange >= 0" [class.negative]="monthTrends().incomeChange < 0">
+          {{ monthTrends().incomeChange > 0 ? '↑' : monthTrends().incomeChange < 0 ? '↓' : '→' }}
+          Receitas {{ monthTrends().incomeChange > 0 ? '+' : '' }}{{ monthTrends().incomeChange }}%
+        </span>
+        <span class="pill" [class.positive]="monthTrends().expenseChange <= 0" [class.negative]="monthTrends().expenseChange > 0">
+          {{ monthTrends().expenseChange > 0 ? '↑' : monthTrends().expenseChange < 0 ? '↓' : '→' }}
+          Despesas {{ monthTrends().expenseChange > 0 ? '+' : '' }}{{ monthTrends().expenseChange }}%
+        </span>
+      </div>
+    </div>
     <app-month-picker
       [year]="year()"
       [month]="month()"
@@ -12,43 +24,92 @@
   <!-- Summary Cards -->
   <app-summary-cards [cards]="summaryCards()" />
 
-  <!-- Trend Indicators -->
-  @if (!isSavingsView()) {
-    <div class="trend-bar">
-      <div class="trend-item">
-        <span class="trend-label">Receitas</span>
-        <span class="trend-badge" [class.positive]="monthTrends().incomeChange >= 0" [class.negative]="monthTrends().incomeChange < 0">
-          {{ monthTrends().incomeChange > 0 ? '↑' : monthTrends().incomeChange < 0 ? '↓' : '→' }}
-          {{ monthTrends().incomeChange > 0 ? '+' : '' }}{{ monthTrends().incomeChange }}%
-        </span>
+  <!-- Bills Overview (A Pagar / Pago) -->
+  @if (bills().pendingCount > 0 || bills().settledCount > 0) {
+    <section class="bills-section">
+      <div class="section-header">
+        <h2 class="section-title">Contas do Mês</h2>
+        <a class="section-link" routerLink="/transactions">Ver todas →</a>
       </div>
-      <div class="trend-item">
-        <span class="trend-label">Despesas</span>
-        <span class="trend-badge" [class.positive]="monthTrends().expenseChange <= 0" [class.negative]="monthTrends().expenseChange > 0">
-          {{ monthTrends().expenseChange > 0 ? '↑' : monthTrends().expenseChange < 0 ? '↓' : '→' }}
-          {{ monthTrends().expenseChange > 0 ? '+' : '' }}{{ monthTrends().expenseChange }}%
-        </span>
+
+      <div class="bills-summary">
+        <div class="bill-stat bill-stat--pending">
+          <span class="bill-stat-icon">⏳</span>
+          <div class="bill-stat-info">
+            <span class="bill-stat-label">A Pagar</span>
+            <span class="bill-stat-value money">{{ bills().totalPending | currencyBrl }}</span>
+            <span class="bill-stat-count">{{ bills().pendingCount }} pendente{{ bills().pendingCount > 1 ? 's' : '' }}</span>
+          </div>
+        </div>
+        <div class="bill-stat bill-stat--settled">
+          <span class="bill-stat-icon">✅</span>
+          <div class="bill-stat-info">
+            <span class="bill-stat-label">Pago</span>
+            <span class="bill-stat-value money">{{ bills().totalSettled | currencyBrl }}</span>
+            <span class="bill-stat-count">{{ bills().settledCount }} pago{{ bills().settledCount > 1 ? 's' : '' }}</span>
+          </div>
+        </div>
+        <div class="bill-stat bill-stat--total">
+          <span class="bill-stat-icon">📋</span>
+          <div class="bill-stat-info">
+            <span class="bill-stat-label">Total Despesas</span>
+            <span class="bill-stat-value money">{{ bills().totalExpenses | currencyBrl }}</span>
+          </div>
+        </div>
       </div>
-      @if (insights().savingsRate !== 0) {
-        <div class="trend-item">
-          <span class="trend-label">Poupança</span>
-          <span class="trend-badge" [class.positive]="insights().savingsRate > 0" [class.negative]="insights().savingsRate <= 0">
-            {{ insights().savingsRate }}%
-          </span>
+
+      <!-- Pending bills list -->
+      @if (bills().pending.length > 0) {
+        <div class="bills-list">
+          <h3 class="bills-list-title">Próximas a vencer</h3>
+          @for (bill of bills().pending; track bill.id; let i = $index) {
+            @if (i < 5) {
+              <div class="bill-item bill-item--pending">
+                <span class="bill-icon">{{ bill.categoryIcon }}</span>
+                <div class="bill-info">
+                  <span class="bill-description">{{ bill.description }}</span>
+                  <span class="bill-meta">{{ bill.categoryName }} · {{ bill.formattedDate }}</span>
+                </div>
+                <span class="bill-amount money">{{ bill.amount | currencyBrl }}</span>
+                <span class="bill-status pending-badge">Pendente</span>
+              </div>
+            }
+          }
         </div>
       }
-      @if (insights().dailyAverage > 0) {
-        <div class="trend-item">
-          <span class="trend-label">Média/dia</span>
-          <span class="trend-badge neutral">{{ insights().dailyAverage | currencyBrl }}</span>
-        </div>
-      }
-    </div>
+    </section>
+  }
+
+  <!-- Credit Card Quick View -->
+  @if (hasCreditCards()) {
+    <section class="credit-cards-section">
+      <div class="section-header">
+        <h2 class="section-title">Cartões de Crédito</h2>
+      </div>
+      <div class="credit-cards-grid">
+        @for (card of creditCards(); track card.id) {
+          <div class="credit-card-widget">
+            <div class="cc-header">
+              <span class="cc-dot" [style.background]="card.color"></span>
+              <span class="cc-name">{{ card.name }}</span>
+              <span class="cc-bank">{{ card.bank }}</span>
+            </div>
+            <div class="cc-amount money">{{ card.totalMonth | currencyBrl }}</div>
+            <div class="cc-bar-wrapper">
+              <div class="cc-bar" [style.width.%]="card.usagePercent > 100 ? 100 : card.usagePercent"></div>
+            </div>
+            <div class="cc-footer">
+              <span class="cc-pending">Pendente: {{ card.pendingMonth | currencyBrl }}</span>
+              <span class="cc-paid">Pago: {{ card.paidMonth | currencyBrl }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
   }
 
   <!-- Charts Grid -->
   <div class="charts-grid">
-    <!-- Donut Chart: Expenses by Category -->
     <div class="chart-card">
       <h2 class="chart-title">Despesas por Categoria</h2>
       @if (donutSegments().length > 0) {
@@ -60,13 +121,11 @@
       } @else {
         <div class="chart-empty">
           <span class="chart-empty-icon">💤</span>
-          <p class="chart-empty-title">Sem despesas</p>
-          <p class="chart-empty-hint">Nenhuma despesa registrada neste mês</p>
+          <p class="chart-empty-msg">Sem despesas neste mês</p>
         </div>
       }
     </div>
 
-    <!-- Bar Chart: Income vs Expenses (6 months) -->
     <div class="chart-card">
       <h2 class="chart-title">Receitas vs Despesas</h2>
       <div class="bar-chart-wrapper">
@@ -79,58 +138,59 @@
     </div>
   </div>
 
-  <!-- Quick Insights Row -->
-  @if (!isSavingsView() && topCategories().length > 0) {
-    <div class="insights-section">
+  <!-- Top Categories -->
+  @if (topCategories().length > 0) {
+    <section class="top-section">
       <div class="section-header">
         <h2 class="section-title">Onde você mais gasta</h2>
-        <a class="section-link" routerLink="/reports">Ver relatórios →</a>
+        <a class="section-link" routerLink="/reports">Relatórios →</a>
       </div>
       <div class="top-categories">
         @for (cat of topCategories(); track cat.name; let i = $index) {
-          <div class="top-category-card" [style.animation-delay]="i * 80 + 'ms'">
-            <div class="top-cat-header">
-              <span class="top-cat-rank">#{{ i + 1 }}</span>
-              <span class="top-cat-icon">{{ cat.icon }}</span>
-              <span class="top-cat-name">{{ cat.name }}</span>
+          <div class="top-cat-item">
+            <span class="top-cat-rank">#{{ i + 1 }}</span>
+            <span class="top-cat-emoji">{{ cat.icon }}</span>
+            <div class="top-cat-info">
+              <div class="top-cat-row">
+                <span class="top-cat-name">{{ cat.name }}</span>
+                <span class="top-cat-value money">{{ cat.value | currencyBrl }}</span>
+              </div>
+              <div class="top-cat-bar-bg">
+                <div class="top-cat-bar" [style.width.%]="cat.percentage" [style.background]="cat.color"></div>
+              </div>
             </div>
-            <span class="top-cat-value money">{{ cat.value | currencyBrl }}</span>
-            <div class="top-cat-bar-wrapper">
-              <div class="top-cat-bar" [style.width.%]="cat.percentage" [style.background]="cat.color"></div>
-            </div>
-            <span class="top-cat-percentage">{{ cat.percentage | number:'1.0-0' }}% dos gastos</span>
           </div>
         }
       </div>
-    </div>
+    </section>
   }
 
-  <!-- Investment Summary (only on checking/all view, if investments exist) -->
-  @if (!isSavingsView() && hasInvestmentAccounts()) {
-    <div class="investment-summary-section">
-      <div class="section-header">
-        <h2 class="section-title">Investimentos</h2>
-        <a class="section-link" routerLink="/investments">Ver detalhes →</a>
+  <!-- Quick Insights -->
+  @if (insights().transactionCount > 0) {
+    <div class="insights-row">
+      <div class="insight-chip">
+        <span class="insight-label">Taxa de Poupança</span>
+        <span class="insight-value" [class.positive]="insights().savingsRate > 0" [class.negative]="insights().savingsRate <= 0">
+          {{ insights().savingsRate }}%
+        </span>
       </div>
-      <div class="investment-mini-cards">
-        @for (item of investmentsSummary().accounts; track item.account.id) {
-          <div class="investment-mini-card">
-            <div class="mini-card-header">
-              <span class="mini-card-dot" [style.background]="item.account.color"></span>
-              <span class="mini-card-name">{{ item.account.name }}</span>
-            </div>
-            <div class="mini-card-balance money">{{ item.summary.currentBalance | currencyBrl }}</div>
-            <div class="mini-card-yield" [class.positive]="item.summary.yieldPercentage >= 0" [class.negative]="item.summary.yieldPercentage < 0">
-              {{ item.summary.yieldPercentage | number:'1.2-2' }}%
-            </div>
-          </div>
-        }
+      <div class="insight-chip">
+        <span class="insight-label">Média/dia</span>
+        <span class="insight-value">{{ insights().dailyAverage | currencyBrl }}</span>
+      </div>
+      <div class="insight-chip">
+        <span class="insight-label">Média/despesa</span>
+        <span class="insight-value">{{ insights().averageExpense | currencyBrl }}</span>
+      </div>
+      <div class="insight-chip">
+        <span class="insight-label">Transações</span>
+        <span class="insight-value">{{ insights().transactionCount }}</span>
       </div>
     </div>
   }
 
   <!-- Recent Transactions -->
-  <div class="recent-section">
+  <section class="recent-section">
     <div class="section-header">
       <h2 class="section-title">Transações Recentes</h2>
       @if (recentTransactions().length > 0) {
@@ -139,91 +199,50 @@
     </div>
 
     @if (recentTransactions().length > 0) {
-      <!-- Desktop table -->
-      <div class="recent-table-wrapper">
-        <table class="recent-table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Descrição</th>
-              <th>Categoria</th>
-              <th class="col-value">Valor</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (txn of recentTransactions(); track txn.id) {
-              <tr>
-                <td class="col-date">{{ txn.formattedDate }}</td>
-                <td class="col-description">{{ txn.description }}</td>
-                <td class="col-category">
-                  @if (txn.type === 'transfer') {
-                    <span class="category-badge transfer-badge">
-                      <span class="category-icon">🔄</span>
-                      Transferência
-                    </span>
-                  } @else {
-                    <span class="category-badge">
-                      <span class="category-icon">{{ txn.categoryIcon }}</span>
-                      {{ txn.categoryName }}
-                    </span>
-                  }
-                </td>
-                <td class="col-value"
-                    [class.value-income]="txn.type === 'income'"
-                    [class.value-expense]="txn.type === 'expense'"
-                    [class.value-transfer]="txn.type === 'transfer'">
-                  @switch (txn.type) {
-                    @case ('income') { + {{ txn.amount | currencyBrl }} }
-                    @case ('expense') { - {{ txn.amount | currencyBrl }} }
-                    @case ('transfer') { {{ txn.amount | currencyBrl }} }
-                  }
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Mobile cards -->
-      <div class="recent-cards-mobile">
+      <div class="recent-list">
         @for (txn of recentTransactions(); track txn.id) {
-          <div class="txn-card-mobile" [class]="'txn-type-' + txn.type">
-            <div class="txn-card-top">
+          <div class="txn-row" [class]="'txn-type-' + txn.type">
+            <div class="txn-left">
               @if (txn.type === 'transfer') {
-                <span class="category-badge transfer-badge">
-                  <span class="category-icon">🔄</span>
-                  Transferência
-                </span>
+                <span class="txn-icon transfer-icon">🔄</span>
               } @else {
-                <span class="category-badge">
-                  <span class="category-icon">{{ txn.categoryIcon }}</span>
-                  {{ txn.categoryName }}
-                </span>
+                <span class="txn-icon">{{ txn.categoryIcon }}</span>
               }
-              <span class="txn-date-mobile">{{ txn.formattedDate }}</span>
+              <div class="txn-info">
+                <span class="txn-description">{{ txn.description }}</span>
+                <span class="txn-meta">
+                  @if (txn.type === 'transfer') {
+                    Transferência
+                  } @else {
+                    {{ txn.categoryName }}
+                  }
+                  · {{ txn.formattedDate }}
+                </span>
+              </div>
             </div>
-            <div class="txn-card-bottom">
-              <span class="txn-description-mobile">{{ txn.description }}</span>
-              <span class="txn-value-mobile"
-                    [class.value-income]="txn.type === 'income'"
-                    [class.value-expense]="txn.type === 'expense'"
-                    [class.value-transfer]="txn.type === 'transfer'">
+            <div class="txn-right">
+              <span class="txn-amount money"
+                    [class.income-color]="txn.type === 'income'"
+                    [class.expense-color]="txn.type === 'expense'"
+                    [class.transfer-color]="txn.type === 'transfer'">
                 @switch (txn.type) {
-                  @case ('income') { + {{ txn.amount | currencyBrl }} }
-                  @case ('expense') { - {{ txn.amount | currencyBrl }} }
-                  @case ('transfer') { {{ txn.amount | currencyBrl }} }
+                  @case ('income') { +{{ txn.amount | currencyBrl }} }
+                  @case ('expense') { -{{ txn.amount | currencyBrl }} }
+                  @default { {{ txn.amount | currencyBrl }} }
                 }
               </span>
+              @if (txn.status === 'pending') {
+                <span class="txn-pending-dot" title="Pendente"></span>
+              }
             </div>
           </div>
         }
       </div>
     } @else {
-      <div class="chart-card empty-transactions">
-        <span class="chart-empty-icon">💤</span>
-        <p class="chart-empty-title">Sem movimentações</p>
-        <p class="chart-empty-hint">Adicione transações para vê-las aqui</p>
+      <div class="empty-state">
+        <span class="empty-icon">💤</span>
+        <p class="empty-text">Nenhuma transação neste mês</p>
       </div>
     }
-  </div>
+  </section>
 </div>

@@ -66,11 +66,11 @@ export class DonutChartComponent implements OnChanges {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderColor: 'rgba(15, 23, 42, 0.05)',
+        backgroundColor: 'rgba(18, 18, 30, 0.95)',
+        borderColor: 'rgba(108, 92, 231, 0.2)',
         borderWidth: 1,
-        titleColor: '#0F172A',
-        bodyColor: '#475569',
+        titleColor: '#EEEEF4',
+        bodyColor: '#5C5D72',
         boxPadding: 4,
         padding: 12,
         cornerRadius: 8,

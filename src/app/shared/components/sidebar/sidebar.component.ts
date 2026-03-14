@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
 import { TransactionService } from '../../../core/services/transaction.service';
+import { ContextService } from '../../../core/services/context.service';
 import { Account } from '../../../core/models/account.model';
-
 import { CurrencyBrlPipe } from '../../pipes/currency-brl.pipe';
 
 interface NavItem {
@@ -19,50 +19,40 @@ interface NavItem {
   imports: [CommonModule, RouterModule, CurrencyBrlPipe],
   template: `
     <aside class="sidebar" [class.collapsed]="collapsed">
-      <div class="sidebar-header">
-        <div class="logo">
-          <span class="logo-icon">💰</span>
+      <!-- Quick Action -->
+      <div class="quick-action" [class.collapsed]="collapsed">
+        <button class="btn-action" (click)="toggleActionMenu($event)">
+          <span class="action-icon">＋</span>
           @if (!collapsed) {
-            <span class="logo-text">CSRFinance</span>
-          }
-        </div>
-        <button class="collapse-btn" (click)="toggleCollapse()" aria-label="Colapsar sidebar">
-          {{ collapsed ? '›' : '‹' }}
-        </button>
-      </div>
-
-      <div class="action-menu-container" [class.collapsed]="collapsed">
-        <button class="btn-new-action" (click)="toggleActionMenu($event)">
-          <span class="btn-icon">＋</span>
-          @if (!collapsed) {
-            <span class="btn-text">Novo</span>
+            <span class="action-text">Novo</span>
           }
         </button>
 
         @if (actionMenuOpen) {
           <div class="action-dropdown" [class.collapsed]="collapsed">
-            <button class="dropdown-item option-expense" (click)="openTransactionForm('expense')">
-              <span class="dropdown-icon">📉</span>
+            <button class="dropdown-item" (click)="openTransactionForm('expense')">
+              <span class="dd-icon expense-dot"></span>
               <span>Despesa</span>
             </button>
-            <button class="dropdown-item option-income" (click)="openTransactionForm('income')">
-              <span class="dropdown-icon">📈</span>
+            <button class="dropdown-item" (click)="openTransactionForm('income')">
+              <span class="dd-icon income-dot"></span>
               <span>Receita</span>
             </button>
-            <button class="dropdown-item option-transfer" (click)="openTransferForm()">
-              <span class="dropdown-icon">🔄</span>
-              <span>Transferencia</span>
+            <button class="dropdown-item" (click)="openTransferForm()">
+              <span class="dd-icon transfer-dot"></span>
+              <span>Transferência</span>
             </button>
           </div>
         }
       </div>
 
+      <!-- Navigation -->
       <nav class="sidebar-nav">
-        @for (item of navItems; track item.route) {
+        @for (item of currentNavItems(); track item.route) {
           <a class="nav-item"
              [routerLink]="item.route"
              routerLinkActive="active"
-             [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+             [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' || item.route === '/investments' }"
              [title]="item.label">
             <span class="nav-icon">{{ item.icon }}</span>
             @if (!collapsed) {
@@ -72,83 +62,92 @@ interface NavItem {
         }
       </nav>
 
-      <div class="sidebar-accounts">
+      <!-- Account List -->
+      <div class="sidebar-accounts" [class.collapsed]="collapsed">
         @if (!collapsed) {
           <div class="accounts-header">
-            <span class="accounts-title">Contas</span>
+            <span class="accounts-title">
+              {{ contextService.isAccounts() ? 'Contas' : 'Carteira' }}
+            </span>
           </div>
         }
 
-        <button class="account-item"
-                [class.active]="!accountService.selectedAccountId()"
-                (click)="accountService.selectAccount(null)">
-          <span class="account-dot" style="background: var(--accent)"></span>
-          @if (!collapsed) {
-            <span class="account-name">Todas as Contas</span>
-          }
-        </button>
-
-        @for (account of accountService.checkingAccounts(); track account.id) {
+        @if (contextService.isAccounts()) {
+          <!-- Bank Accounts Context -->
           <button class="account-item"
-                  [class.active]="accountService.selectedAccountId() === account.id"
-                  (click)="accountService.selectAccount(account.id)">
-            <span class="account-dot" [style.background]="account.color"></span>
+                  [class.active]="!accountService.selectedAccountId()"
+                  (click)="accountService.selectAccount(null)">
+            <span class="account-dot" style="background: var(--accent)"></span>
             @if (!collapsed) {
-              <span class="account-name">{{ account.name }}</span>
-              <span class="account-balance money">
-                {{ (transactionService.accountBalances().get(account.id) ?? 0) | currencyBrl }}
-              </span>
+              <span class="account-name">Todas</span>
             }
           </button>
 
-          <!-- Child savings/investment accounts -->
-          @for (child of getChildAccounts(account.id); track child.id) {
-            <button class="account-item account-child"
-                    [class.active]="accountService.selectedAccountId() === child.id"
-                    (click)="accountService.selectAccount(child.id)">
+          @for (account of accountService.checkingAccounts(); track account.id) {
+            <button class="account-item"
+                    [class.active]="accountService.selectedAccountId() === account.id"
+                    (click)="accountService.selectAccount(account.id)">
+              <span class="account-dot" [style.background]="account.color"></span>
               @if (!collapsed) {
-                <span class="child-connector">└</span>
-              }
-              <span class="account-dot account-dot-sm" [style.background]="child.color"></span>
-              @if (!collapsed) {
-                <span class="account-name">{{ child.name }}</span>
+                <span class="account-name">{{ account.name }}</span>
                 <span class="account-balance money">
-                  {{ (transactionService.accountBalances().get(child.id) ?? 0) | currencyBrl }}
+                  {{ (transactionService.accountBalances().get(account.id) ?? 0) | currencyBrl }}
+                </span>
+              }
+            </button>
+          }
+
+          @for (account of accountService.creditCardAccounts(); track account.id) {
+            <button class="account-item"
+                    [class.active]="accountService.selectedAccountId() === account.id"
+                    (click)="accountService.selectAccount(account.id)">
+              <span class="account-dot" [style.background]="account.color"></span>
+              @if (!collapsed) {
+                <span class="account-name">{{ account.name }}</span>
+                <span class="account-balance money text-expense">
+                  {{ (transactionService.accountBalances().get(account.id) ?? 0) | currencyBrl }}
+                </span>
+              }
+            </button>
+          }
+        } @else {
+          <!-- Investments Context -->
+          <button class="account-item"
+                  [class.active]="!accountService.selectedAccountId()"
+                  (click)="accountService.selectAccount(null)">
+            <span class="account-dot" style="background: var(--accent)"></span>
+            @if (!collapsed) {
+              <span class="account-name">Todos</span>
+            }
+          </button>
+
+          @for (account of accountService.allInvestmentAccounts(); track account.id) {
+            <button class="account-item"
+                    [class.active]="accountService.selectedAccountId() === account.id"
+                    (click)="accountService.selectAccount(account.id)">
+              <span class="account-dot" [style.background]="account.color"></span>
+              @if (!collapsed) {
+                <span class="account-name">{{ account.name }}</span>
+                <span class="account-balance money">
+                  {{ (transactionService.accountBalances().get(account.id) ?? 0) | currencyBrl }}
                 </span>
               }
             </button>
           }
         }
-
-        <!-- Standalone savings/investment accounts (no parent) -->
-        @if (standaloneInvestments().length > 0 && !collapsed) {
-          <div class="accounts-header" style="margin-top: 8px">
-            <span class="accounts-title">Investimentos</span>
-          </div>
-        }
-        @for (account of standaloneInvestments(); track account.id) {
-          <button class="account-item"
-                  [class.active]="accountService.selectedAccountId() === account.id"
-                  (click)="accountService.selectAccount(account.id)">
-            <span class="account-dot" [style.background]="account.color"></span>
-            @if (!collapsed) {
-              <span class="account-name">{{ account.name }}</span>
-              <span class="account-balance money">
-                {{ (transactionService.accountBalances().get(account.id) ?? 0) | currencyBrl }}
-              </span>
-            }
-          </button>
-        }
       </div>
 
+      <!-- Footer -->
       <div class="sidebar-footer">
         @if (!collapsed) {
-          <span class="footer-label">Patrimonio Total</span>
+          <span class="footer-label">
+            {{ contextService.isAccounts() ? 'Saldo Total' : 'Patrimônio' }}
+          </span>
           <span class="footer-value money">
             {{ transactionService.totalBalance() | currencyBrl }}
           </span>
         } @else {
-          <span class="footer-icon">💎</span>
+          <span class="footer-icon">◆</span>
         }
       </div>
     </aside>
@@ -161,44 +160,39 @@ export class SidebarComponent {
 
   private router = inject(Router);
   private elementRef = inject(ElementRef);
+  contextService = inject(ContextService);
 
-  navItems: NavItem[] = [
+  accountsNavItems: NavItem[] = [
     { label: 'Dashboard', icon: '📊', route: '/dashboard' },
     { label: 'Contas', icon: '🏦', route: '/accounts' },
-    { label: 'Transacoes', icon: '💳', route: '/transactions' },
-    { label: 'Relatorios', icon: '📈', route: '/reports' },
+    { label: 'Transações', icon: '💳', route: '/transactions' },
+    { label: 'Relatórios', icon: '📈', route: '/reports' },
     { label: 'Categorias', icon: '🏷️', route: '/categories' },
-    { label: 'Investimentos', icon: '💰', route: '/investments' },
   ];
 
-  readonly standaloneInvestments = computed(() =>
-    this.accountService.allInvestmentAccounts().filter(a => !a.parentAccountId)
-  );
+  investmentsNavItems: NavItem[] = [
+    { label: 'Carteira', icon: '💰', route: '/investments' },
+    { label: 'Relatórios', icon: '📈', route: '/reports' },
+  ];
+
+  readonly currentNavItems = computed(() => {
+    return this.contextService.isAccounts()
+      ? this.accountsNavItems
+      : this.investmentsNavItems;
+  });
 
   constructor(
     public accountService: AccountService,
     public transactionService: TransactionService,
   ) {}
 
-  getChildAccounts(parentId: string): Account[] {
-    return this.accountService.getChildAccounts(parentId);
-  }
-
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     if (this.actionMenuOpen) {
-      const clickedInside = this.elementRef.nativeElement.querySelector('.action-menu-container')?.contains(event.target);
+      const clickedInside = this.elementRef.nativeElement.querySelector('.quick-action')?.contains(event.target);
       if (!clickedInside) {
         this.actionMenuOpen = false;
       }
-    }
-  }
-
-  toggleCollapse(): void {
-    this.collapsed = !this.collapsed;
-    this.collapsedChange.emit(this.collapsed);
-    if (this.collapsed) {
-      this.actionMenuOpen = false;
     }
   }
 

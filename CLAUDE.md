@@ -1,7 +1,7 @@
 # CSRFinance - Sistema Financeiro Pessoal
 
 ## Descrição
-Sistema financeiro pessoal inspirado no Mobills, construído em Angular 19+ com standalone components, responsivo (mobile-first), e preparado para futura integração com backend.
+Sistema financeiro pessoal com tema Obsidian Glass (dark glassmorphism), construído em Angular 19+ com standalone components, responsivo (mobile-first), com separação de contextos Contas e Investimentos, e preparado para futura integração com backend.
 
 ## Stack Técnica
 - **Framework:** Angular 19+ (standalone components, signals)
@@ -28,9 +28,10 @@ src/app/
 │   ├── services/
 │   │   ├── storage.service.ts     # Abstração localStorage com onChange$ notification
 │   │   ├── file.service.ts        # Persistência em arquivo Excel (.xlsx)
-│   │   ├── account.service.ts     # CRUD de contas
-│   │   ├── transaction.service.ts # CRUD de transações + cálculos
-│   │   └── category.service.ts    # CRUD de categorias
+│   │   ├── account.service.ts     # CRUD de contas (checking, credit_card, savings, investment)
+│   │   ├── transaction.service.ts # CRUD de transações + analytics avançados
+│   │   ├── category.service.ts    # CRUD de categorias
+│   │   └── context.service.ts     # Toggle entre contextos Contas/Investimentos
 │   ├── models/
 │   │   ├── account.model.ts
 │   │   ├── transaction.model.ts
@@ -73,19 +74,28 @@ src/app/
 
 ## Design System
 
-### Cores (CSS Variables)
-- `--bg: #F0F2F8` (fundo geral)
-- `--surface: #FFFFFF` (cards)
-- `--text: #1A1D2E` (texto principal)
-- `--text-secondary: #6B7194`
-- `--accent: #6C5CE7` (cor principal/destaque)
-- `--income: #00B894` (receitas - verde)
-- `--expense: #E84393` (despesas - rosa)
-- `--border: #E8EAF2`
+### Tema: Obsidian Glass (Dark Glassmorphism)
+- `--bg: #0A0A12` (fundo escuro)
+- `--surface: rgba(255, 255, 255, 0.04)` (cards glass)
+- `--text: #EEEEF4` (texto principal claro)
+- `--text-secondary: #9394A5`
+- `--text-muted: #5C5D72`
+- `--accent: #818CF8` (indigo/violeta)
+- `--income: #34D399` (receitas - verde)
+- `--expense: #FB7185` (despesas - rosa)
+- `--transfer: #38BDF8` (transferências - azul)
+- `--glass-bg: rgba(255, 255, 255, 0.03)` (fundo glass)
+- `--glass-border: rgba(255, 255, 255, 0.06)` (borda glass)
+
+### Layout
+- **Top Header**: Logo + Context Toggle (Contas/Investimentos) + FileBar
+- **Sidebar**: 260px (desktop), 72px (colapsada), hidden (mobile)
+- **Mobile Nav**: Bottom bar com items contextuais
+- **Context Toggle**: Alterna navegação, sidebar e conteúdo entre Contas e Investimentos
 
 ### Tipografia
 - Body: `'DM Sans', sans-serif`
-- Valores monetários: `'Space Mono', monospace` com classe `.money`
+- Valores monetários: `'DM Sans'` com `font-variant-numeric: tabular-nums` e classe `.money`
 
 ### Breakpoints (mobile-first)
 - Mobile: < 768px
@@ -93,19 +103,27 @@ src/app/
 - Desktop: > 1024px
 - Wide: > 1440px
 
-### Sidebar
-- Background: gradient `#1A1D2E → #2D3154`
-- Width: 280px (desktop), 72px (colapsada), hidden (mobile)
-
 ## Padrões de Arquitetura
 - **Services:** Singleton com `providedIn: 'root'`, usam signals internos
+- **ContextService:** Toggle global entre 'accounts' e 'investments', define navegação e conteúdo
 - **StorageService:** Abstração de persistência com `onChange$` Subject para notificar mudanças
-- **FileService:** Persistência em Excel (.xlsx) via SheetJS + File System Access API. Auto-save com debounce 1.5s. Fallback para download em browsers sem suporte
+- **FileService:** Persistência em Excel (.xlsx) via SheetJS + File System Access API. Auto-save com debounce 1.5s
+- **AccountService:** CRUD de contas com tipos: checking, credit_card, savings, investment. Computed signals para cada tipo
+- **TransactionService:** CRUD + analytics: getNetWorthHistory, getCashFlow, getCategoryComparison, getTopExpenses, getExpenseInsights, getMonthOverMonthComparison
 - **Shared components:** Independentes e reutilizáveis, recebem dados via @Input
 - **Features:** Cada feature é lazy-loaded, contém componente principal + sub-componentes
 - **Filtro por conta:** `accountService.selectedAccountId()` filtra dados globalmente
+- **Tipos de conta:** checking (corrente), credit_card (cartão), savings (poupança), investment (investimentos fixos)
+
+## Funcionalidades
+- **Dashboard**: Cards de resumo, tendências vs mês anterior, contas a pagar/pagas, cartões de crédito, gráficos (donut + barras), top categorias, insights
+- **Relatórios (11 abas)**: Por Categoria, Diário, Balanço, Patrimônio, Fluxo de Caixa, Comparativo, Análises, Anual Categorias, Despesas Fixas, Mês a Mês, Investimentos
+- **Transações**: CRUD com filtros, transferências pareadas, recorrentes, status pago/pendente
+- **Cartão de Crédito**: Visualização de fatura mensal, pagamento, pendente vs pago
+- **Investimentos**: Poupança, LCI, Tesouro Direto - rendimentos, saldo real, % rendimento
 
 ## Histórico de Mudanças
+- **v1.0.0** - Redesign completo: tema Obsidian Glass (dark glassmorphism), context toggle Contas/Investimentos no header, AccountType credit_card com fatura mensal, ContextService para gerenciar contexto, TransactionService com 6 novos métodos analytics (netWorthHistory, cashFlow, categoryComparison, topExpenses, expenseInsights, monthOverMonth), dashboard com bills a pagar/pagas + cartões de crédito + insights + tendências, 11 abas de relatórios incluindo 3 relatórios anuais (categorias, despesas fixas, heatmap mês-a-mês), sidebar e mobile nav contextuais, novo design system com CSS variables dark
 - **v0.5.0** - Revisão de produção: welcome screen como gate obrigatório, tela de boas-vindas com features, correção de bugs (timezone em datas, newFile/closeFile limpando dados, open file aceitando xlsx), summary cards com breakdown de transferências por conta, meta tags para PWA, mobile nav com indicador ativo, sidebar com scroll em contas e footer fixo, dashboard com empty states melhores e link "Ver todas", transações mostram transferências com ícone 🔄 e cor accent, month picker com capitalização correta, seleção de texto estilizada, scrollbar mais sutil
 - **v0.3.2** - Fix: cálculo de saldos em transferências (deduplicação por transferId), validação de workbook simplificada
 - **v0.3.1** - Fix: reatividade dos saldos (computed signals), app inicia vazio (sem seed data), validação de formato ao abrir .xlsx com mensagens de erro claras

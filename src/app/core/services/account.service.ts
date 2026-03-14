@@ -21,6 +21,18 @@ export class AccountService {
     this.accountsSignal().filter(a => (a.type ?? 'checking') === 'checking')
   );
 
+  readonly creditCardAccounts = computed(() =>
+    this.accountsSignal().filter(a => a.type === 'credit_card')
+  );
+
+  /** All "bank" accounts: checking + credit card (for the Contas context) */
+  readonly bankAccounts = computed(() =>
+    this.accountsSignal().filter(a => {
+      const type = a.type ?? 'checking';
+      return type === 'checking' || type === 'credit_card';
+    })
+  );
+
   readonly savingsAccounts = computed(() =>
     this.accountsSignal().filter(a => (a.type ?? 'checking') === 'savings')
   );
