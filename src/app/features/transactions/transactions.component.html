@@ -336,7 +336,7 @@
 
     <div class="form-actions modern-actions">
       <button type="button" class="btn-cancel-modern" (click)="closeModal()">CANCELAR</button>
-      <button type="submit" class="btn-save-modern" [disabled]="transactionForm.invalid">
+      <button type="submit" class="btn-save-modern">
         {{ editingTransaction() ? 'SALVAR ALTERAÇÕES' : 'SALVAR' }}
       </button>
     </div>
@@ -456,7 +456,7 @@
 
     <div class="form-actions modern-actions">
       <button type="button" class="btn-cancel-modern" (click)="closeTransferModal()">CANCELAR</button>
-      <button type="submit" class="btn-save-modern" [disabled]="transferForm.invalid">TRANSFERIR</button>
+      <button type="submit" class="btn-save-modern">TRANSFERIR</button>
     </div>
   </form>
 </app-modal>

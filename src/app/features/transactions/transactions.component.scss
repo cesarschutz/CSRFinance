@@ -1032,18 +1032,14 @@
     }
 
     .btn-save-modern {
-      background: var(--surface);
+      background: var(--accent-gradient);
       border: none;
-      color: var(--text-muted);
+      color: #fff;
 
-      &:not(:disabled):hover {
-        background: var(--surface-hover);
-      }
-
-      // If form is valid, use accent gradient
-      &:not(:disabled) {
-        background: var(--accent-gradient);
-        color: #fff;
+      &:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px var(--accent-glow);
       }
     }
   }
