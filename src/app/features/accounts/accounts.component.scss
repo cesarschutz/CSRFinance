@@ -109,12 +109,14 @@
 .action-btn {
   width: 32px;
   height: 32px;
+  border: none;
   border-radius: 50%;
   @include flex-center;
   font-size: 0.9rem;
   color: var(--text-secondary);
   background: var(--surface-solid);
   box-shadow: var(--shadow-sm);
+  cursor: pointer;
   transition: all var(--transition-fast);
 
   &:hover {

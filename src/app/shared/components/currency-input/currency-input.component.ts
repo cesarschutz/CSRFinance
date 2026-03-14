@@ -18,16 +18,19 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       multi: true,
     },
   ],
+  host: { style: 'display: contents' },
   template: `
     <input
       #inputEl
       type="text"
       inputmode="numeric"
+      autocomplete="off"
       [class]="cssClass"
       [placeholder]="placeholder"
       [value]="displayValue()"
       (keydown)="onKeyDown($event)"
       (input)="onInput($event)"
+      (focus)="onFocus()"
       (blur)="onTouched()"
     />
   `,
@@ -62,6 +65,14 @@ export class CurrencyInputComponent implements ControlValueAccessor {
 
   registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
+  }
+
+  onFocus(): void {
+    // Move cursor to end on focus
+    const el = this.inputEl?.nativeElement;
+    if (el) {
+      setTimeout(() => el.setSelectionRange(el.value.length, el.value.length));
+    }
   }
 
   onKeyDown(event: KeyboardEvent): void {

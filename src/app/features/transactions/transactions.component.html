@@ -466,11 +466,11 @@
   <div class="delete-confirm">
     @if (deletingTransaction()?.recurringId) {
       <p>Esta transação faz parte de uma recorrência.<br> O que deseja excluir?</p>
-      <div class="form-actions vertical-actions" style="flex-direction: column; gap: 8px;">
-        <button type="button" class="btn-cancel" style="width: 100%; border-color: rgba(239, 68, 68, 0.4); color: var(--danger)" (click)="executeDelete('single')">Excluir APENAS ESTA</button>
-        <button type="button" class="btn-cancel" style="width: 100%; border-color: rgba(239, 68, 68, 0.4); color: var(--danger)" (click)="executeDelete('future')">Excluir ESTA E AS FUTURAS</button>
-        <button type="button" class="btn-danger" style="width: 100%" (click)="executeDelete('all')">Excluir TODAS</button>
-        <button type="button" class="btn-cancel" style="width: 100%; margin-top: 8px;" (click)="cancelDelete()">Cancelar</button>
+      <div class="scope-actions">
+        <button type="button" class="btn-scope btn-scope-danger" (click)="executeDelete('single')">Excluir APENAS ESTA</button>
+        <button type="button" class="btn-scope btn-scope-danger" (click)="executeDelete('future')">Excluir ESTA E AS FUTURAS</button>
+        <button type="button" class="btn-danger btn-scope-full" (click)="executeDelete('all')">Excluir TODAS</button>
+        <button type="button" class="btn-cancel btn-scope-full btn-scope-muted" (click)="cancelDelete()">Cancelar</button>
       </div>
     } @else if (deletingTransaction()?.transferId) {
       <p>Tem certeza que deseja excluir esta transferência?</p>
@@ -494,11 +494,11 @@
 <app-modal [isOpen]="showEditScopeModal()" title="Editar Série" (close)="cancelEditScope()">
   <div class="delete-confirm">
     <p>Esta transação faz parte de uma recorrência.<br>Como deseja aplicar as alterações?</p>
-    <div class="form-actions vertical-actions" style="flex-direction: column; gap: 8px;">
-      <button type="button" class="btn-cancel" style="width: 100%; color: var(--text);" (click)="confirmEditScope('single')">Alterar APENAS ESTA</button>
-      <button type="button" class="btn-cancel" style="width: 100%; color: var(--text);" (click)="confirmEditScope('future')">Alterar ESTA E AS FUTURAS</button>
-      <button type="button" class="btn-save" style="width: 100%;" (click)="confirmEditScope('all')">Alterar TODAS</button>
-      <button type="button" class="btn-cancel" style="width: 100%; margin-top: 8px;" (click)="cancelEditScope()">Cancelar</button>
+    <div class="scope-actions">
+      <button type="button" class="btn-scope" (click)="confirmEditScope('single')">Alterar APENAS ESTA</button>
+      <button type="button" class="btn-scope" (click)="confirmEditScope('future')">Alterar ESTA E AS FUTURAS</button>
+      <button type="button" class="btn-save btn-scope-full" (click)="confirmEditScope('all')">Alterar TODAS</button>
+      <button type="button" class="btn-cancel btn-scope-full btn-scope-muted" (click)="cancelEditScope()">Cancelar</button>
     </div>
   </div>
 </app-modal>
