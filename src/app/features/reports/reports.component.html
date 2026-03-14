@@ -1,7 +1,7 @@
 <div class="reports-page">
   <!-- Header -->
   <header class="page-header">
-    <h1>Relat&oacute;rios</h1>
+    <h1>Relatórios</h1>
     <app-month-picker
       [year]="year()"
       [month]="month()"
@@ -11,34 +11,14 @@
 
   <!-- Tab Navigation -->
   <nav class="tabs">
-    <button
-      class="tab-btn"
-      [class.active]="activeTab() === 'category'"
-      (click)="setTab('category')"
-    >
-      Por Categoria
-    </button>
-    <button
-      class="tab-btn"
-      [class.active]="activeTab() === 'daily'"
-      (click)="setTab('daily')"
-    >
-      Despesas Di&aacute;rias
-    </button>
-    <button
-      class="tab-btn"
-      [class.active]="activeTab() === 'balance'"
-      (click)="setTab('balance')"
-    >
-      Balanco Mensal
-    </button>
-    @if (hasInvestmentAccounts()) {
+    @for (tab of tabs(); track tab.id) {
       <button
         class="tab-btn"
-        [class.active]="activeTab() === 'investments'"
-        (click)="setTab('investments')"
+        [class.active]="activeTab() === tab.id"
+        (click)="setTab(tab.id)"
       >
-        Investimentos
+        <span class="tab-icon">{{ tab.icon }}</span>
+        <span class="tab-label">{{ tab.label }}</span>
       </button>
     }
   </nav>
@@ -52,7 +32,7 @@
       <!-- ======================== -->
       @case ('category') {
         @if (categoryData().length > 0) {
-          <section class="report-section">
+          <section class="report-section fade-in">
             <div class="chart-card">
               <app-donut-chart
                 [segments]="donutSegments()"
@@ -62,8 +42,8 @@
             </div>
 
             <div class="category-list">
-              @for (item of categoryData(); track item.id) {
-                <div class="category-item">
+              @for (item of categoryData(); track item.id; let i = $index) {
+                <div class="category-item" [style.animation-delay]="i * 50 + 'ms'">
                   <span class="category-icon">{{ item.icon }}</span>
                   <div class="category-info">
                     <div class="category-header">
@@ -87,7 +67,7 @@
           <app-empty-state
             icon="📊"
             title="Nenhuma despesa encontrada"
-            message="N&atilde;o h&aacute; despesas registradas neste m&ecirc;s para exibir no relat&oacute;rio."
+            message="Não há despesas registradas neste mês para exibir no relatório."
           />
         }
       }
@@ -97,7 +77,7 @@
       <!-- ======================== -->
       @case ('daily') {
         @if (dailyExpenses().length > 0) {
-          <section class="report-section">
+          <section class="report-section fade-in">
             <div class="chart-card">
               <div class="chart-container chart-container--line">
                 <canvas baseChart
@@ -109,7 +89,7 @@
             </div>
 
             <div class="daily-summary">
-              <span class="daily-summary-label">Total do m&ecirc;s</span>
+              <span class="daily-summary-label">Total do mês</span>
               <span class="daily-summary-value money expense">{{ totalDailyExpenses() | currencyBrl }}</span>
             </div>
 
@@ -125,8 +105,8 @@
         } @else {
           <app-empty-state
             icon="📅"
-            title="Sem despesas di&aacute;rias"
-            message="Nenhuma despesa registrada neste m&ecirc;s."
+            title="Sem despesas diárias"
+            message="Nenhuma despesa registrada neste mês."
           />
         }
       }
@@ -136,7 +116,7 @@
       <!-- ========================== -->
       @case ('balance') {
         @if (hasMonthlyData()) {
-          <section class="report-section">
+          <section class="report-section fade-in">
             <div class="chart-card">
               <div class="chart-container chart-container--bar">
                 <canvas baseChart
@@ -160,7 +140,7 @@
                     <span class="monthly-row-value money expense">{{ item.expense | currencyBrl }}</span>
                   </div>
                   <div class="monthly-row monthly-row--balance">
-                    <span class="monthly-row-label">Balan&ccedil;o</span>
+                    <span class="monthly-row-label">Balanço</span>
                     <span
                       class="monthly-row-value money"
                       [class.income]="item.balance >= 0"
@@ -176,19 +156,407 @@
         } @else {
           <app-empty-state
             icon="📈"
-            title="Sem dados de balan&ccedil;o"
-            message="N&atilde;o h&aacute; transa&ccedil;&otilde;es nos &uacute;ltimos 6 meses."
+            title="Sem dados de balanço"
+            message="Não há transações nos últimos 6 meses."
+          />
+        }
+      }
+
+      <!-- ================================ -->
+      <!-- Tab 4 - Evolucao Patrimonial     -->
+      <!-- ================================ -->
+      @case ('patrimony') {
+        @if (hasPatrimonyData()) {
+          <section class="report-section fade-in">
+            <!-- Summary Stats -->
+            @if (patrimonyStats(); as stats) {
+              <div class="stats-grid stats-grid--3">
+                <div class="stat-card stat-card--accent">
+                  <span class="stat-icon">🏦</span>
+                  <div class="stat-content">
+                    <span class="stat-label">Patrimônio Atual</span>
+                    <span class="stat-value money">{{ stats.currentNetWorth | currencyBrl }}</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-icon">{{ stats.monthChange >= 0 ? '📈' : '📉' }}</span>
+                  <div class="stat-content">
+                    <span class="stat-label">Variação Mensal</span>
+                    <span class="stat-value money" [class.income]="stats.monthChange >= 0" [class.expense]="stats.monthChange < 0">
+                      {{ stats.monthChange | currencyBrl }}
+                    </span>
+                    <span class="stat-badge" [class.positive]="stats.monthChangePercent >= 0" [class.negative]="stats.monthChangePercent < 0">
+                      {{ stats.monthChangePercent > 0 ? '+' : '' }}{{ stats.monthChangePercent }}%
+                    </span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-icon">🎯</span>
+                  <div class="stat-content">
+                    <span class="stat-label">Variação Total (12m)</span>
+                    <span class="stat-value money" [class.income]="stats.totalChange >= 0" [class.expense]="stats.totalChange < 0">
+                      {{ stats.totalChange | currencyBrl }}
+                    </span>
+                    <span class="stat-badge" [class.positive]="stats.totalChangePercent >= 0" [class.negative]="stats.totalChangePercent < 0">
+                      {{ stats.totalChangePercent > 0 ? '+' : '' }}{{ stats.totalChangePercent }}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Chart -->
+            <div class="chart-card">
+              <h3 class="chart-subtitle">Evolução nos últimos 12 meses</h3>
+              <div class="chart-container chart-container--line">
+                <canvas baseChart
+                  [type]="'line'"
+                  [data]="patrimonyChartData()"
+                  [options]="patrimonyChartOptions">
+                </canvas>
+              </div>
+            </div>
+
+            <!-- Monthly Breakdown -->
+            <div class="patrimony-table">
+              <div class="table-header">
+                <span class="table-col table-col--month">Mês</span>
+                <span class="table-col table-col--value">Receitas</span>
+                <span class="table-col table-col--value">Despesas</span>
+                <span class="table-col table-col--value">Patrimônio</span>
+              </div>
+              @for (item of netWorthHistory(); track item.month) {
+                <div class="table-row">
+                  <span class="table-col table-col--month">{{ item.label }}</span>
+                  <span class="table-col table-col--value money income">{{ item.income | currencyBrl }}</span>
+                  <span class="table-col table-col--value money expense">{{ item.expense | currencyBrl }}</span>
+                  <span class="table-col table-col--value money">{{ item.netWorth | currencyBrl }}</span>
+                </div>
+              }
+            </div>
+          </section>
+        } @else {
+          <app-empty-state
+            icon="🏦"
+            title="Sem dados patrimoniais"
+            message="Adicione transações para visualizar a evolução do seu patrimônio."
           />
         }
       }
 
       <!-- ========================== -->
-      <!-- Tab 4 - Investimentos      -->
+      <!-- Tab 5 - Fluxo de Caixa     -->
+      <!-- ========================== -->
+      @case ('cashflow') {
+        @if (hasCashFlowData()) {
+          <section class="report-section fade-in">
+            <!-- Bar Chart: Income vs Expense -->
+            <div class="chart-card">
+              <h3 class="chart-subtitle">Receitas vs Despesas</h3>
+              <p class="chart-hint">Barras semitransparentes representam projeção futura</p>
+              <div class="chart-container chart-container--bar">
+                <canvas baseChart
+                  [type]="'bar'"
+                  [data]="cashFlowChartData()"
+                  [options]="cashFlowBarOptions">
+                </canvas>
+              </div>
+            </div>
+
+            <!-- Line Chart: Cumulative -->
+            <div class="chart-card">
+              <h3 class="chart-subtitle">Saldo Acumulado</h3>
+              <p class="chart-hint">Linha tracejada representa projeção baseada na média dos últimos 3 meses</p>
+              <div class="chart-container chart-container--line">
+                <canvas baseChart
+                  [type]="'line'"
+                  [data]="cashFlowLineData()"
+                  [options]="cashFlowLineOptions">
+                </canvas>
+              </div>
+            </div>
+
+            <!-- Cash Flow Details -->
+            <div class="cashflow-table">
+              <div class="table-header">
+                <span class="table-col table-col--month">Mês</span>
+                <span class="table-col table-col--value">Receitas</span>
+                <span class="table-col table-col--value">Despesas</span>
+                <span class="table-col table-col--value">Saldo</span>
+                <span class="table-col table-col--value">Acumulado</span>
+              </div>
+              @for (item of cashFlowData(); track item.month) {
+                <div class="table-row" [class.projected]="item.isProjection">
+                  <span class="table-col table-col--month">
+                    {{ item.label }}
+                    @if (item.isProjection) {
+                      <span class="projection-badge">projeção</span>
+                    }
+                  </span>
+                  <span class="table-col table-col--value money income">{{ item.income | currencyBrl }}</span>
+                  <span class="table-col table-col--value money expense">{{ item.expense | currencyBrl }}</span>
+                  <span class="table-col table-col--value money" [class.income]="item.net >= 0" [class.expense]="item.net < 0">
+                    {{ item.net | currencyBrl }}
+                  </span>
+                  <span class="table-col table-col--value money" [class.income]="item.cumulative >= 0" [class.expense]="item.cumulative < 0">
+                    {{ item.cumulative | currencyBrl }}
+                  </span>
+                </div>
+              }
+            </div>
+          </section>
+        } @else {
+          <app-empty-state
+            icon="💸"
+            title="Sem dados de fluxo"
+            message="Adicione transações para visualizar o fluxo de caixa."
+          />
+        }
+      }
+
+      <!-- ================================ -->
+      <!-- Tab 6 - Comparativo Mensal       -->
+      <!-- ================================ -->
+      @case ('comparison') {
+        @if (hasComparisonData()) {
+          <section class="report-section fade-in">
+            <!-- Summary -->
+            <div class="comparison-summary">
+              <div class="stat-card">
+                <div class="stat-content">
+                  <span class="stat-label">{{ prevMonthLabel() | titlecase }}</span>
+                  <span class="stat-value money expense">{{ comparisonSummary().totalPrev | currencyBrl }}</span>
+                </div>
+              </div>
+              <div class="comparison-arrow">
+                <span class="arrow-icon">→</span>
+              </div>
+              <div class="stat-card">
+                <div class="stat-content">
+                  <span class="stat-label">{{ currMonthLabel() | titlecase }}</span>
+                  <span class="stat-value money expense">{{ comparisonSummary().totalCurr | currencyBrl }}</span>
+                </div>
+              </div>
+              <div class="stat-card" [class.stat-card--positive]="comparisonSummary().diff < 0" [class.stat-card--negative]="comparisonSummary().diff > 0">
+                <div class="stat-content">
+                  <span class="stat-label">Diferença</span>
+                  <span class="stat-value money" [class.income]="comparisonSummary().diff < 0" [class.expense]="comparisonSummary().diff > 0">
+                    {{ comparisonSummary().diff | currencyBrl }}
+                  </span>
+                  <span class="stat-badge" [class.positive]="comparisonSummary().percentChange <= 0" [class.negative]="comparisonSummary().percentChange > 0">
+                    {{ comparisonSummary().percentChange > 0 ? '+' : '' }}{{ comparisonSummary().percentChange }}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-card">
+              <h3 class="chart-subtitle">Comparativo por Categoria</h3>
+              <div class="chart-container chart-container--bar-horizontal">
+                <canvas baseChart
+                  [type]="'bar'"
+                  [data]="comparisonChartData()"
+                  [options]="comparisonChartOptions">
+                </canvas>
+              </div>
+            </div>
+
+            <!-- Detailed List -->
+            <div class="comparison-list">
+              @for (item of comparisonData(); track item.categoryId) {
+                <div class="comparison-item">
+                  <div class="comparison-item-header">
+                    <span class="comparison-item-icon">{{ item.categoryIcon }}</span>
+                    <span class="comparison-item-name">{{ item.categoryName }}</span>
+                    <span class="comparison-item-badge"
+                          [class.positive]="item.difference <= 0"
+                          [class.negative]="item.difference > 0">
+                      @if (item.difference > 0) {
+                        +{{ item.percentChange | number:'1.0-0' }}%
+                      } @else if (item.difference < 0) {
+                        {{ item.percentChange | number:'1.0-0' }}%
+                      } @else {
+                        =
+                      }
+                    </span>
+                  </div>
+                  <div class="comparison-item-values">
+                    <div class="comparison-item-col">
+                      <span class="comparison-col-label">{{ prevMonthLabel() | titlecase }}</span>
+                      <span class="comparison-col-value money">{{ item.month1Value | currencyBrl }}</span>
+                    </div>
+                    <span class="comparison-arrow-small">→</span>
+                    <div class="comparison-item-col">
+                      <span class="comparison-col-label">{{ currMonthLabel() | titlecase }}</span>
+                      <span class="comparison-col-value money">{{ item.month2Value | currencyBrl }}</span>
+                    </div>
+                    <div class="comparison-item-col">
+                      <span class="comparison-col-label">Diferença</span>
+                      <span class="comparison-col-value money"
+                            [class.income]="item.difference < 0"
+                            [class.expense]="item.difference > 0">
+                        {{ item.difference | currencyBrl }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        } @else {
+          <app-empty-state
+            icon="🔄"
+            title="Sem dados para comparar"
+            message="Registre despesas em pelo menos dois meses para ver o comparativo."
+          />
+        }
+      }
+
+      <!-- ========================== -->
+      <!-- Tab 7 - Insights           -->
+      <!-- ========================== -->
+      @case ('insights') {
+        @if (hasInsightsData()) {
+          <section class="report-section fade-in">
+            <!-- KPI Cards -->
+            <div class="stats-grid stats-grid--4">
+              <div class="stat-card stat-card--accent">
+                <span class="stat-icon">💰</span>
+                <div class="stat-content">
+                  <span class="stat-label">Taxa de Poupança</span>
+                  <span class="stat-value" [class.income]="insights().savingsRate > 0" [class.expense]="insights().savingsRate <= 0">
+                    {{ insights().savingsRate }}%
+                  </span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon">📊</span>
+                <div class="stat-content">
+                  <span class="stat-label">Média por Despesa</span>
+                  <span class="stat-value money">{{ insights().averageExpense | currencyBrl }}</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon">📅</span>
+                <div class="stat-content">
+                  <span class="stat-label">Média Diária</span>
+                  <span class="stat-value money">{{ insights().dailyAverage | currencyBrl }}</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon">🔢</span>
+                <div class="stat-content">
+                  <span class="stat-label">Total Transações</span>
+                  <span class="stat-value">{{ insights().transactionCount }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Month over Month Comparison -->
+            <div class="mom-comparison">
+              <h3 class="section-subtitle">Comparação vs Mês Anterior</h3>
+              <div class="mom-grid">
+                <div class="mom-card">
+                  <span class="mom-label">Receitas</span>
+                  <span class="mom-value money income">{{ monthComparison().currentIncome | currencyBrl }}</span>
+                  <span class="mom-change" [class.positive]="monthComparison().incomeChange >= 0" [class.negative]="monthComparison().incomeChange < 0">
+                    {{ monthComparison().incomeChange > 0 ? '+' : '' }}{{ monthComparison().incomeChange }}%
+                  </span>
+                </div>
+                <div class="mom-card">
+                  <span class="mom-label">Despesas</span>
+                  <span class="mom-value money expense">{{ monthComparison().currentExpense | currencyBrl }}</span>
+                  <span class="mom-change" [class.positive]="monthComparison().expenseChange <= 0" [class.negative]="monthComparison().expenseChange > 0">
+                    {{ monthComparison().expenseChange > 0 ? '+' : '' }}{{ monthComparison().expenseChange }}%
+                  </span>
+                </div>
+                <div class="mom-card">
+                  <span class="mom-label">Balanço</span>
+                  <span class="mom-value money" [class.income]="monthComparison().currentBalance >= 0" [class.expense]="monthComparison().currentBalance < 0">
+                    {{ monthComparison().currentBalance | currencyBrl }}
+                  </span>
+                  <span class="mom-change" [class.positive]="monthComparison().balanceChange >= 0" [class.negative]="monthComparison().balanceChange < 0">
+                    {{ monthComparison().balanceChange > 0 ? '+' : '' }}{{ monthComparison().balanceChange }}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Expense by Weekday -->
+            <div class="chart-card">
+              <h3 class="chart-subtitle">Gastos por Dia da Semana</h3>
+              <div class="weekday-chart">
+                @for (item of expenseByWeekday(); track item.day) {
+                  <div class="weekday-bar-group">
+                    <div class="weekday-bar-wrapper">
+                      <div class="weekday-bar"
+                           [style.height.%]="item.percentage"
+                           [class.weekday-highlight]="item.percentage === 100 && item.amount > 0">
+                      </div>
+                    </div>
+                    <span class="weekday-label">{{ item.label }}</span>
+                    <span class="weekday-value money">{{ item.amount | currencyBrl }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Top Expenses -->
+            <div class="top-expenses">
+              <h3 class="section-subtitle">Top 10 Maiores Gastos</h3>
+              <div class="top-list">
+                @for (txn of topExpenses(); track txn.id; let i = $index) {
+                  <div class="top-item" [style.animation-delay]="i * 40 + 'ms'">
+                    <span class="top-rank">#{{ i + 1 }}</span>
+                    <span class="top-icon">{{ txn.categoryIcon }}</span>
+                    <div class="top-info">
+                      <span class="top-description">{{ txn.description }}</span>
+                      <span class="top-meta">{{ txn.categoryName }} · {{ txn.formattedDate }}</span>
+                    </div>
+                    <span class="top-value money expense">{{ txn.amount | currencyBrl }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Quick Insights -->
+            @if (insights().biggestExpenseDay; as biggest) {
+              <div class="insight-cards">
+                <div class="insight-card">
+                  <span class="insight-icon">🔥</span>
+                  <div class="insight-text">
+                    <span class="insight-title">Dia com mais gastos</span>
+                    <span class="insight-detail">{{ biggest.date }} — {{ biggest.amount | currencyBrl }}</span>
+                  </div>
+                </div>
+                @if (insights().biggestCategory) {
+                  <div class="insight-card">
+                    <span class="insight-icon">🏷️</span>
+                    <div class="insight-text">
+                      <span class="insight-title">Maior categoria</span>
+                      <span class="insight-detail">{{ biggestCategoryName() }} — {{ insights().biggestCategory!.amount | currencyBrl }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        } @else {
+          <app-empty-state
+            icon="🧠"
+            title="Sem dados para análise"
+            message="Registre despesas neste mês para ver insights e análises."
+          />
+        }
+      }
+
+      <!-- ========================== -->
+      <!-- Tab 8 - Investimentos      -->
       <!-- ========================== -->
       @case ('investments') {
         @if (investmentsSummary().accounts.length > 0) {
-          <section class="report-section">
-            <!-- Summary -->
+          <section class="report-section fade-in">
             <div class="investment-report-summary">
               <div class="inv-summary-item">
                 <span class="inv-summary-label">Total Investido</span>
@@ -212,7 +580,6 @@
               </div>
             </div>
 
-            <!-- Donut Chart -->
             @if (investmentDonutSegments().length > 0) {
               <div class="chart-card">
                 <app-donut-chart
@@ -223,7 +590,6 @@
               </div>
             }
 
-            <!-- Per-account table -->
             <div class="investment-table">
               @for (item of investmentsSummary().accounts; track item.account.id) {
                 <div class="investment-table-row">
@@ -264,7 +630,7 @@
           <app-empty-state
             icon="💰"
             title="Sem investimentos"
-            message="Crie contas do tipo Poupanca ou Investimento para visualizar os relatorios."
+            message="Crie contas do tipo Poupança ou Investimento para visualizar os relatórios."
           />
         }
       }

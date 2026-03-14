@@ -538,6 +538,281 @@ export class TransactionService {
 
   // --- Analytics ---
 
+  /**
+   * Net worth evolution over the last N months.
+   * For each month-end, calculates the total balance across all accounts.
+   */
+  getNetWorthHistory(months: number = 12): {
+    label: string;
+    month: string;
+    netWorth: number;
+    income: number;
+    expense: number;
+  }[] {
+    const result: { label: string; month: string; netWorth: number; income: number; expense: number }[] = [];
+    const accounts = this.accountService.accounts();
+    const txns = this.transactionsSignal();
+    const now = new Date();
+
+    for (let i = months - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      const endDateStr = `${endOfMonth.getFullYear()}-${String(endOfMonth.getMonth() + 1).padStart(2, '0')}-${String(endOfMonth.getDate()).padStart(2, '0')}`;
+
+      // Calculate balance up to end of this month for all accounts
+      let totalBalance = 0;
+      const processedTransfers = new Set<string>();
+
+      for (const acc of accounts) {
+        let balance = acc.initialBalance;
+        for (const t of txns) {
+          if (t.date > endDateStr) continue;
+
+          if (t.type === 'transfer') {
+            if (t.transferId && !processedTransfers.has(t.transferId)) {
+              processedTransfers.add(t.transferId);
+              if (t.accountId === acc.id) balance -= t.amount;
+              if (t.transferAccountId === acc.id) balance += t.amount;
+            }
+          } else if (t.accountId === acc.id) {
+            if (t.type === 'income' || t.type === 'yield') balance += t.amount;
+            else if (t.type === 'expense') balance -= t.amount;
+          }
+        }
+        totalBalance += balance;
+        processedTransfers.clear();
+      }
+
+      const summary = this.getSummary(d.getFullYear(), d.getMonth());
+      const label = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+
+      result.push({
+        label,
+        month: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        netWorth: Math.round(totalBalance * 100) / 100,
+        income: summary.income,
+        expense: summary.expense,
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Cash flow: income vs expense per month with running cumulative balance.
+   * Includes projection for future months based on recurring transactions.
+   */
+  getCashFlow(pastMonths: number = 6, futureMonths: number = 3): {
+    label: string;
+    month: string;
+    income: number;
+    expense: number;
+    net: number;
+    cumulative: number;
+    isProjection: boolean;
+  }[] {
+    const result: { label: string; month: string; income: number; expense: number; net: number; cumulative: number; isProjection: boolean }[] = [];
+    const now = new Date();
+    let cumulative = 0;
+
+    // Past months
+    for (let i = pastMonths - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const summary = this.getSummary(d.getFullYear(), d.getMonth());
+      const net = summary.income - summary.expense;
+      cumulative += net;
+      const label = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+
+      result.push({
+        label,
+        month: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        income: summary.income,
+        expense: summary.expense,
+        net,
+        cumulative: Math.round(cumulative * 100) / 100,
+        isProjection: false,
+      });
+    }
+
+    // Future months - project based on average of last 3 months
+    const recentMonths = result.slice(-3);
+    const avgIncome = recentMonths.length > 0
+      ? recentMonths.reduce((s, m) => s + m.income, 0) / recentMonths.length
+      : 0;
+    const avgExpense = recentMonths.length > 0
+      ? recentMonths.reduce((s, m) => s + m.expense, 0) / recentMonths.length
+      : 0;
+
+    for (let i = 1; i <= futureMonths; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const net = avgIncome - avgExpense;
+      cumulative += net;
+      const label = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+
+      result.push({
+        label,
+        month: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        income: Math.round(avgIncome * 100) / 100,
+        expense: Math.round(avgExpense * 100) / 100,
+        net: Math.round(net * 100) / 100,
+        cumulative: Math.round(cumulative * 100) / 100,
+        isProjection: true,
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Compare expenses by category between two months.
+   */
+  getCategoryComparison(
+    year1: number, month1: number,
+    year2: number, month2: number,
+    accountId?: string | null
+  ): {
+    categoryId: string;
+    month1Value: number;
+    month2Value: number;
+    difference: number;
+    percentChange: number;
+  }[] {
+    const cat1 = this.getExpensesByCategory(year1, month1, accountId);
+    const cat2 = this.getExpensesByCategory(year2, month2, accountId);
+
+    const allCategories = new Set([...cat1.keys(), ...cat2.keys()]);
+    const result: { categoryId: string; month1Value: number; month2Value: number; difference: number; percentChange: number }[] = [];
+
+    allCategories.forEach(catId => {
+      const v1 = cat1.get(catId) ?? 0;
+      const v2 = cat2.get(catId) ?? 0;
+      const difference = v2 - v1;
+      const percentChange = v1 > 0 ? ((v2 - v1) / v1) * 100 : (v2 > 0 ? 100 : 0);
+
+      result.push({ categoryId: catId, month1Value: v1, month2Value: v2, difference, percentChange });
+    });
+
+    return result.sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));
+  }
+
+  /**
+   * Top expenses for a given month - individual transactions ranked by amount.
+   */
+  getTopExpenses(year: number, month: number, limit: number = 10, accountId?: string | null): Transaction[] {
+    return this.getByMonth(year, month, accountId)
+      .filter(t => t.type === 'expense')
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, limit);
+  }
+
+  /**
+   * Expense insights for a given month.
+   */
+  getExpenseInsights(year: number, month: number, accountId?: string | null): {
+    totalExpenses: number;
+    totalIncome: number;
+    transactionCount: number;
+    averageExpense: number;
+    dailyAverage: number;
+    biggestExpenseDay: { date: string; amount: number } | null;
+    biggestCategory: { categoryId: string; amount: number } | null;
+    savingsRate: number;
+    expenseFrequency: Map<number, number>; // day of week -> total
+  } {
+    const txns = this.getByMonth(year, month, accountId);
+    const expenses = txns.filter(t => t.type === 'expense');
+    const incomes = txns.filter(t => t.type === 'income');
+
+    const totalExpenses = expenses.reduce((s, t) => s + t.amount, 0);
+    const totalIncome = incomes.reduce((s, t) => s + t.amount, 0);
+    const transactionCount = expenses.length;
+    const averageExpense = transactionCount > 0 ? totalExpenses / transactionCount : 0;
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
+    const daysElapsed = isCurrentMonth ? today.getDate() : daysInMonth;
+    const dailyAverage = daysElapsed > 0 ? totalExpenses / daysElapsed : 0;
+
+    // Biggest expense day
+    const dailyMap = this.getDailyExpenses(year, month, accountId);
+    let biggestExpenseDay: { date: string; amount: number } | null = null;
+    dailyMap.forEach((amount, date) => {
+      if (!biggestExpenseDay || amount > biggestExpenseDay.amount) {
+        biggestExpenseDay = { date, amount };
+      }
+    });
+
+    // Biggest category
+    const catMap = this.getExpensesByCategory(year, month, accountId);
+    let biggestCategory: { categoryId: string; amount: number } | null = null;
+    catMap.forEach((amount, categoryId) => {
+      if (!biggestCategory || amount > biggestCategory.amount) {
+        biggestCategory = { categoryId, amount };
+      }
+    });
+
+    // Savings rate
+    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+
+    // Expense frequency by day of week
+    const expenseFrequency = new Map<number, number>();
+    for (let i = 0; i < 7; i++) expenseFrequency.set(i, 0);
+    expenses.forEach(t => {
+      const dayOfWeek = new Date(t.date + 'T00:00:00').getDay();
+      expenseFrequency.set(dayOfWeek, (expenseFrequency.get(dayOfWeek) ?? 0) + t.amount);
+    });
+
+    return {
+      totalExpenses: Math.round(totalExpenses * 100) / 100,
+      totalIncome: Math.round(totalIncome * 100) / 100,
+      transactionCount,
+      averageExpense: Math.round(averageExpense * 100) / 100,
+      dailyAverage: Math.round(dailyAverage * 100) / 100,
+      biggestExpenseDay,
+      biggestCategory,
+      savingsRate: Math.round(savingsRate * 10) / 10,
+      expenseFrequency,
+    };
+  }
+
+  /**
+   * Compare current month vs previous month summary.
+   */
+  getMonthOverMonthComparison(year: number, month: number, accountId?: string | null): {
+    currentIncome: number;
+    previousIncome: number;
+    incomeChange: number;
+    currentExpense: number;
+    previousExpense: number;
+    expenseChange: number;
+    currentBalance: number;
+    previousBalance: number;
+    balanceChange: number;
+  } {
+    const prevDate = new Date(year, month - 1, 1);
+    const current = this.getSummary(year, month, accountId);
+    const previous = this.getSummary(prevDate.getFullYear(), prevDate.getMonth(), accountId);
+
+    const incomeChange = previous.income > 0 ? ((current.income - previous.income) / previous.income) * 100 : 0;
+    const expenseChange = previous.expense > 0 ? ((current.expense - previous.expense) / previous.expense) * 100 : 0;
+    const currentBal = current.income - current.expense;
+    const previousBal = previous.income - previous.expense;
+    const balanceChange = previousBal !== 0 ? ((currentBal - previousBal) / Math.abs(previousBal)) * 100 : 0;
+
+    return {
+      currentIncome: current.income,
+      previousIncome: previous.income,
+      incomeChange: Math.round(incomeChange * 10) / 10,
+      currentExpense: current.expense,
+      previousExpense: previous.expense,
+      expenseChange: Math.round(expenseChange * 10) / 10,
+      currentBalance: currentBal,
+      previousBalance: previousBal,
+      balanceChange: Math.round(balanceChange * 10) / 10,
+    };
+  }
+
   getExpensesByCategory(year: number, month: number, accountId?: string | null): Map<string, number> {
     const txns = this.getByMonth(year, month, accountId).filter(t => t.type === 'expense');
     const map = new Map<string, number>();

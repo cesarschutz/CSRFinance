@@ -12,7 +12,7 @@ import { DonutChartComponent, DonutSegment } from '../../shared/components/donut
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { CurrencyBrlPipe } from '../../shared/pipes/currency-brl.pipe';
 
-export type ReportTab = 'category' | 'daily' | 'balance' | 'investments';
+export type ReportTab = 'category' | 'daily' | 'balance' | 'patrimony' | 'cashflow' | 'comparison' | 'insights' | 'investments';
 
 export interface CategoryReport {
   id: string;
@@ -59,6 +59,10 @@ export class ReportsComponent {
   year = signal(new Date().getFullYear());
   month = signal(new Date().getMonth());
 
+  // For comparison tab
+  compareYear = signal(new Date().getMonth() === 0 ? new Date().getFullYear() - 1 : new Date().getFullYear());
+  compareMonth = signal(new Date().getMonth() === 0 ? 11 : new Date().getMonth() - 1);
+
   onMonthChange(event: { year: number; month: number }): void {
     this.year.set(event.year);
     this.month.set(event.month);
@@ -67,6 +71,24 @@ export class ReportsComponent {
   setTab(tab: ReportTab): void {
     this.activeTab.set(tab);
   }
+
+  readonly tabs = computed(() => {
+    const base: { id: ReportTab; label: string; icon: string }[] = [
+      { id: 'category', label: 'Categorias', icon: '🏷️' },
+      { id: 'daily', label: 'Diário', icon: '📅' },
+      { id: 'balance', label: 'Balanço', icon: '⚖️' },
+      { id: 'patrimony', label: 'Patrimônio', icon: '🏦' },
+      { id: 'cashflow', label: 'Fluxo de Caixa', icon: '💸' },
+      { id: 'comparison', label: 'Comparativo', icon: '🔄' },
+      { id: 'insights', label: 'Análises', icon: '🧠' },
+    ];
+
+    if (this.hasInvestmentAccounts()) {
+      base.push({ id: 'investments', label: 'Investimentos', icon: '💰' });
+    }
+
+    return base;
+  });
 
   // ==============================
   // Tab 1 - Por Categoria
@@ -168,12 +190,12 @@ export class ReportsComponent {
         {
           label: 'Despesas',
           data,
-          borderColor: '#F43F5E',
-          backgroundColor: 'rgba(244, 63, 94, 0.1)',
+          borderColor: '#E84393',
+          backgroundColor: 'rgba(232, 67, 147, 0.08)',
           fill: true,
-          tension: 0.3,
-          pointBackgroundColor: '#F43F5E',
-          pointBorderColor: '#151B2E',
+          tension: 0.4,
+          pointBackgroundColor: '#E84393',
+          pointBorderColor: '#fff',
           pointBorderWidth: 2,
           pointRadius: 3,
           pointHoverRadius: 6,
@@ -188,20 +210,18 @@ export class ReportsComponent {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(21, 27, 46, 0.95)',
-        borderColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'rgba(26, 29, 46, 0.95)',
+        borderColor: 'rgba(108, 92, 231, 0.2)',
         borderWidth: 1,
         titleColor: '#F1F5F9',
         bodyColor: '#94A3B8',
+        padding: 12,
+        cornerRadius: 10,
         callbacks: {
           title: (items) => `Dia ${items[0].label}`,
           label: (ctx) => {
             const value = ctx.parsed.y;
-            const formatted = new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            }).format(value ?? 0);
-            return formatted;
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value ?? 0);
           },
         },
       },
@@ -211,23 +231,19 @@ export class ReportsComponent {
         grid: { display: false },
         ticks: {
           font: { family: "'DM Sans', sans-serif", size: 11 },
-          color: '#64748B',
+          color: '#6B7194',
           maxTicksLimit: 15,
         },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+        grid: { color: 'rgba(108, 92, 231, 0.06)' },
         ticks: {
           font: { family: "'Space Mono', monospace", size: 11 },
-          color: '#64748B',
-          callback: (value) => {
-            return new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-              maximumFractionDigits: 0,
-            }).format(value as number);
-          },
+          color: '#6B7194',
+          callback: (value) => new Intl.NumberFormat('pt-BR', {
+            style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
+          }).format(value as number),
         },
       },
     },
@@ -263,20 +279,20 @@ export class ReportsComponent {
         {
           label: 'Receitas',
           data: balances.map(b => b.income),
-          backgroundColor: 'rgba(124, 58, 237, 0.85)',
-          borderColor: '#7C3AED',
+          backgroundColor: 'rgba(0, 184, 148, 0.8)',
+          borderColor: '#00B894',
           borderWidth: 1,
-          borderRadius: 6,
-          hoverBackgroundColor: '#7C3AED',
+          borderRadius: 8,
+          hoverBackgroundColor: '#00B894',
         },
         {
           label: 'Despesas',
           data: balances.map(b => b.expense),
-          backgroundColor: 'rgba(56, 189, 248, 0.85)',
-          borderColor: '#38BDF8',
+          backgroundColor: 'rgba(232, 67, 147, 0.8)',
+          borderColor: '#E84393',
           borderWidth: 1,
-          borderRadius: 6,
-          hoverBackgroundColor: '#38BDF8',
+          borderRadius: 8,
+          hoverBackgroundColor: '#E84393',
         },
       ],
     };
@@ -291,30 +307,25 @@ export class ReportsComponent {
         labels: {
           usePointStyle: true,
           padding: 20,
-          font: { family: "'Outfit', sans-serif", size: 13, weight: 600 },
-          color: '#475569',
+          font: { family: "'DM Sans', sans-serif", size: 13, weight: 600 },
+          color: '#6B7194',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderColor: 'rgba(124, 58, 237, 0.1)',
+        backgroundColor: 'rgba(26, 29, 46, 0.95)',
+        borderColor: 'rgba(108, 92, 231, 0.2)',
         borderWidth: 1,
-        titleColor: '#0F172A',
-        bodyColor: '#334155',
-        titleFont: { family: "'Outfit', sans-serif", size: 14, weight: 700 },
-        bodyFont: { family: "'DM Sans', sans-serif", size: 13, weight: 500 },
+        titleColor: '#F1F5F9',
+        bodyColor: '#94A3B8',
         padding: 12,
-        cornerRadius: 12,
+        cornerRadius: 10,
         boxPadding: 6,
         callbacks: {
           label: (ctx) => {
             const value = ctx.parsed.y;
-            const formatted = new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-              maximumFractionDigits: 0,
-            }).format(value ?? 0);
-            return `${ctx.dataset.label}: ${formatted}`;
+            return `${ctx.dataset.label}: ${new Intl.NumberFormat('pt-BR', {
+              style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
+            }).format(value ?? 0)}`;
           },
         },
       },
@@ -323,33 +334,26 @@ export class ReportsComponent {
       x: {
         grid: { display: false },
         ticks: {
-          font: { family: "'Outfit', sans-serif", size: 12, weight: 600 },
-          color: '#64748B',
+          font: { family: "'DM Sans', sans-serif", size: 12, weight: 600 },
+          color: '#6B7194',
         },
         border: { display: false },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(15, 23, 42, 0.04)', drawTicks: false },
+        grid: { color: 'rgba(108, 92, 231, 0.06)', drawTicks: false },
         ticks: {
-          font: { family: "'DM Sans', sans-serif", size: 12, weight: 500 },
-          color: '#94A3B8',
+          font: { family: "'Space Mono', monospace", size: 11 },
+          color: '#6B7194',
           padding: 10,
-          callback: (value) => {
-            return new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-              maximumFractionDigits: 0,
-            }).format(value as number);
-          },
+          callback: (value) => new Intl.NumberFormat('pt-BR', {
+            style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
+          }).format(value as number),
         },
         border: { display: false, dash: [4, 4] },
       },
     },
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
+    interaction: { mode: 'index', intersect: false },
   };
 
   hasMonthlyData = computed<boolean>(() => {
@@ -357,7 +361,411 @@ export class ReportsComponent {
   });
 
   // ==============================
-  // Tab 4 - Investimentos
+  // Tab 4 - Evolucao Patrimonial
+  // ==============================
+
+  readonly netWorthHistory = computed(() => {
+    this.transactionService.transactions();
+    return this.transactionService.getNetWorthHistory(12);
+  });
+
+  readonly patrimonyChartData = computed<ChartConfiguration<'line'>['data']>(() => {
+    const history = this.netWorthHistory();
+
+    return {
+      labels: history.map(h => h.label),
+      datasets: [
+        {
+          label: 'Patrimônio',
+          data: history.map(h => h.netWorth),
+          borderColor: '#6C5CE7',
+          backgroundColor: 'rgba(108, 92, 231, 0.08)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#6C5CE7',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          borderWidth: 3,
+        },
+      ],
+    };
+  });
+
+  readonly patrimonyChartOptions: ChartConfiguration<'line'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(26, 29, 46, 0.95)',
+        borderColor: 'rgba(108, 92, 231, 0.3)',
+        borderWidth: 1,
+        titleColor: '#F1F5F9',
+        bodyColor: '#94A3B8',
+        padding: 12,
+        cornerRadius: 10,
+        callbacks: {
+          label: (ctx) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ctx.parsed.y ?? 0),
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          font: { family: "'DM Sans', sans-serif", size: 11 },
+          color: '#6B7194',
+        },
+      },
+      y: {
+        grid: { color: 'rgba(108, 92, 231, 0.06)' },
+        ticks: {
+          font: { family: "'Space Mono', monospace", size: 11 },
+          color: '#6B7194',
+          callback: (value) => new Intl.NumberFormat('pt-BR', {
+            style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
+          }).format(value as number),
+        },
+      },
+    },
+  };
+
+  readonly patrimonyStats = computed(() => {
+    const history = this.netWorthHistory();
+    if (history.length < 2) return null;
+
+    const current = history[history.length - 1];
+    const previous = history[history.length - 2];
+    const first = history[0];
+
+    const monthChange = current.netWorth - previous.netWorth;
+    const monthChangePercent = previous.netWorth !== 0
+      ? (monthChange / Math.abs(previous.netWorth)) * 100 : 0;
+    const totalChange = current.netWorth - first.netWorth;
+    const totalChangePercent = first.netWorth !== 0
+      ? (totalChange / Math.abs(first.netWorth)) * 100 : 0;
+
+    return {
+      currentNetWorth: current.netWorth,
+      monthChange: Math.round(monthChange * 100) / 100,
+      monthChangePercent: Math.round(monthChangePercent * 10) / 10,
+      totalChange: Math.round(totalChange * 100) / 100,
+      totalChangePercent: Math.round(totalChangePercent * 10) / 10,
+      highestNetWorth: Math.max(...history.map(h => h.netWorth)),
+      lowestNetWorth: Math.min(...history.map(h => h.netWorth)),
+    };
+  });
+
+  hasPatrimonyData = computed(() => this.netWorthHistory().some(h => h.netWorth !== 0));
+
+  // ==============================
+  // Tab 5 - Fluxo de Caixa
+  // ==============================
+
+  readonly cashFlowData = computed(() => {
+    this.transactionService.transactions();
+    return this.transactionService.getCashFlow(6, 3);
+  });
+
+  readonly cashFlowChartData = computed<ChartConfiguration<'bar'>['data']>(() => {
+    const data = this.cashFlowData();
+    const pastData = data.filter(d => !d.isProjection);
+    const futureData = data.filter(d => d.isProjection);
+
+    return {
+      labels: data.map(d => d.label),
+      datasets: [
+        {
+          label: 'Receitas',
+          data: data.map(d => d.income),
+          backgroundColor: data.map(d => d.isProjection ? 'rgba(0, 184, 148, 0.35)' : 'rgba(0, 184, 148, 0.8)'),
+          borderColor: data.map(d => d.isProjection ? 'rgba(0, 184, 148, 0.5)' : '#00B894'),
+          borderWidth: 1,
+          borderRadius: 6,
+          borderDash: [],
+        },
+        {
+          label: 'Despesas',
+          data: data.map(d => d.expense),
+          backgroundColor: data.map(d => d.isProjection ? 'rgba(232, 67, 147, 0.35)' : 'rgba(232, 67, 147, 0.8)'),
+          borderColor: data.map(d => d.isProjection ? 'rgba(232, 67, 147, 0.5)' : '#E84393'),
+          borderWidth: 1,
+          borderRadius: 6,
+        },
+      ],
+    };
+  });
+
+  readonly cashFlowLineData = computed<ChartConfiguration<'line'>['data']>(() => {
+    const data = this.cashFlowData();
+
+    return {
+      labels: data.map(d => d.label),
+      datasets: [
+        {
+          label: 'Saldo Acumulado',
+          data: data.map(d => d.cumulative),
+          borderColor: '#6C5CE7',
+          backgroundColor: 'rgba(108, 92, 231, 0.05)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: data.map(d => d.isProjection ? 'rgba(108, 92, 231, 0.5)' : '#6C5CE7'),
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          borderWidth: 2,
+          borderDash: [],
+          segment: {
+            borderDash: (ctx: any) => {
+              const dataLen = data.filter(d => !d.isProjection).length;
+              return ctx.p0DataIndex >= dataLen - 1 ? [6, 4] : [];
+            },
+          },
+        },
+      ],
+    };
+  });
+
+  readonly cashFlowBarOptions: ChartConfiguration<'bar'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          usePointStyle: true,
+          padding: 16,
+          font: { family: "'DM Sans', sans-serif", size: 12, weight: 600 },
+          color: '#6B7194',
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(26, 29, 46, 0.95)',
+        borderColor: 'rgba(108, 92, 231, 0.2)',
+        borderWidth: 1,
+        titleColor: '#F1F5F9',
+        bodyColor: '#94A3B8',
+        padding: 12,
+        cornerRadius: 10,
+        callbacks: {
+          label: (ctx) => `${ctx.dataset.label}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ctx.parsed.y ?? 0)}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { family: "'DM Sans', sans-serif", size: 11 }, color: '#6B7194' },
+      },
+      y: {
+        grid: { color: 'rgba(108, 92, 231, 0.06)' },
+        ticks: {
+          font: { family: "'Space Mono', monospace", size: 11 },
+          color: '#6B7194',
+          callback: (value) => new Intl.NumberFormat('pt-BR', {
+            style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
+          }).format(value as number),
+        },
+      },
+    },
+  };
+
+  readonly cashFlowLineOptions: ChartConfiguration<'line'>['options'] = {
+    ...this.patrimonyChartOptions,
+    plugins: {
+      ...this.patrimonyChartOptions!.plugins,
+      legend: { display: false },
+    },
+  };
+
+  hasCashFlowData = computed(() => this.cashFlowData().some(d => d.income > 0 || d.expense > 0));
+
+  // ==============================
+  // Tab 6 - Comparativo Mensal
+  // ==============================
+
+  readonly comparisonData = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
+
+    // Compare current selected month with previous month
+    const prevDate = new Date(this.year(), this.month() - 1, 1);
+
+    const data = this.transactionService.getCategoryComparison(
+      prevDate.getFullYear(), prevDate.getMonth(),
+      this.year(), this.month(),
+      accountId,
+    );
+
+    return data.map(item => {
+      const category = this.categoryService.getById(item.categoryId);
+      return {
+        ...item,
+        categoryName: category?.name ?? 'Desconhecida',
+        categoryIcon: category?.icon ?? '❓',
+        categoryColor: category?.color ?? '#6B7194',
+      };
+    });
+  });
+
+  readonly comparisonChartData = computed<ChartConfiguration<'bar'>['data']>(() => {
+    const data = this.comparisonData().slice(0, 8);
+    const prevDate = new Date(this.year(), this.month() - 1, 1);
+    const prevLabel = prevDate.toLocaleDateString('pt-BR', { month: 'short' });
+    const currLabel = new Date(this.year(), this.month(), 1).toLocaleDateString('pt-BR', { month: 'short' });
+
+    return {
+      labels: data.map(d => d.categoryIcon + ' ' + d.categoryName),
+      datasets: [
+        {
+          label: prevLabel,
+          data: data.map(d => d.month1Value),
+          backgroundColor: 'rgba(108, 92, 231, 0.6)',
+          borderColor: '#6C5CE7',
+          borderWidth: 1,
+          borderRadius: 6,
+        },
+        {
+          label: currLabel,
+          data: data.map(d => d.month2Value),
+          backgroundColor: 'rgba(232, 67, 147, 0.6)',
+          borderColor: '#E84393',
+          borderWidth: 1,
+          borderRadius: 6,
+        },
+      ],
+    };
+  });
+
+  readonly comparisonChartOptions: ChartConfiguration<'bar'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          usePointStyle: true,
+          padding: 16,
+          font: { family: "'DM Sans', sans-serif", size: 12, weight: 600 },
+          color: '#6B7194',
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(26, 29, 46, 0.95)',
+        borderColor: 'rgba(108, 92, 231, 0.2)',
+        borderWidth: 1,
+        titleColor: '#F1F5F9',
+        bodyColor: '#94A3B8',
+        padding: 12,
+        cornerRadius: 10,
+        callbacks: {
+          label: (ctx) => `${ctx.dataset.label}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ctx.parsed.x ?? 0)}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(108, 92, 231, 0.06)' },
+        ticks: {
+          font: { family: "'Space Mono', monospace", size: 11 },
+          color: '#6B7194',
+          callback: (value) => new Intl.NumberFormat('pt-BR', {
+            style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
+          }).format(value as number),
+        },
+      },
+      y: {
+        grid: { display: false },
+        ticks: { font: { family: "'DM Sans', sans-serif", size: 12 }, color: '#6B7194' },
+      },
+    },
+  };
+
+  readonly comparisonSummary = computed(() => {
+    const data = this.comparisonData();
+    const totalPrev = data.reduce((s, d) => s + d.month1Value, 0);
+    const totalCurr = data.reduce((s, d) => s + d.month2Value, 0);
+    const diff = totalCurr - totalPrev;
+    const percentChange = totalPrev > 0 ? (diff / totalPrev) * 100 : 0;
+    const increased = data.filter(d => d.month2Value > d.month1Value);
+    const decreased = data.filter(d => d.month2Value < d.month1Value);
+
+    return { totalPrev, totalCurr, diff, percentChange: Math.round(percentChange * 10) / 10, increased: increased.length, decreased: decreased.length };
+  });
+
+  hasComparisonData = computed(() => this.comparisonData().length > 0);
+
+  readonly prevMonthLabel = computed(() => {
+    const prevDate = new Date(this.year(), this.month() - 1, 1);
+    return prevDate.toLocaleDateString('pt-BR', { month: 'long' });
+  });
+
+  readonly currMonthLabel = computed(() => {
+    return new Date(this.year(), this.month(), 1).toLocaleDateString('pt-BR', { month: 'long' });
+  });
+
+  // ==============================
+  // Tab 7 - Insights / Analises
+  // ==============================
+
+  readonly insights = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
+    return this.transactionService.getExpenseInsights(this.year(), this.month(), accountId);
+  });
+
+  readonly topExpenses = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
+    const txns = this.transactionService.getTopExpenses(this.year(), this.month(), 10, accountId);
+
+    return txns.map(t => {
+      const category = this.categoryService.getById(t.categoryId);
+      return {
+        ...t,
+        categoryName: category?.name ?? 'Sem categoria',
+        categoryIcon: category?.icon ?? '❓',
+        formattedDate: new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR', {
+          day: '2-digit', month: '2-digit',
+        }),
+      };
+    });
+  });
+
+  readonly monthComparison = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
+    return this.transactionService.getMonthOverMonthComparison(this.year(), this.month(), accountId);
+  });
+
+  readonly weekdayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  readonly expenseByWeekday = computed(() => {
+    const freq = this.insights().expenseFrequency;
+    const maxVal = Math.max(...Array.from(freq.values()));
+    return Array.from(freq.entries()).map(([day, amount]) => ({
+      day,
+      label: this.weekdayLabels[day],
+      amount,
+      percentage: maxVal > 0 ? (amount / maxVal) * 100 : 0,
+    }));
+  });
+
+  readonly biggestCategoryName = computed(() => {
+    const bc = this.insights().biggestCategory;
+    if (!bc) return '';
+    const cat = this.categoryService.getById(bc.categoryId);
+    return cat ? `${cat.icon} ${cat.name}` : '';
+  });
+
+  hasInsightsData = computed(() => this.insights().transactionCount > 0);
+
+  // ==============================
+  // Tab 8 - Investimentos
   // ==============================
 
   readonly hasInvestmentAccounts = computed(() =>
@@ -379,4 +787,12 @@ export class ReportsComponent {
         color: a.account.color,
       }));
   });
+
+  // ==============================
+  // Helper
+  // ==============================
+
+  readonly fmt = (v: number) => new Intl.NumberFormat('pt-BR', {
+    style: 'currency', currency: 'BRL',
+  }).format(v);
 }

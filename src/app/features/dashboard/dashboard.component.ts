@@ -41,7 +41,6 @@ export class DashboardComponent {
     this.month.set(event.month);
   }
 
-  // Is the selected account a savings/investment account?
   readonly isSavingsView = computed(() => {
     const acc = this.accountService.selectedAccount();
     if (!acc) return false;
@@ -71,7 +70,6 @@ export class DashboardComponent {
       style: 'currency', currency: 'BRL',
     }).format(v);
 
-    // Savings/Investment view
     if (this.isSavingsView() && accountId) {
       const savingsTxns = this.transactionService.getSavingsTransactions(this.year(), this.month(), accountId);
       const deposits = savingsTxns.deposits.reduce((s, t) => s + t.amount, 0);
@@ -86,16 +84,15 @@ export class DashboardComponent {
       ];
     }
 
-    // Regular checking view
     const incomeTotal = summary.income + summary.transferIn;
     const expenseTotal = summary.expense + summary.transferOut;
 
     const incomeDetail = accountId && summary.transferIn > 0
-      ? `${fmt(summary.income)} receitas + ${fmt(summary.transferIn)} transferencias`
+      ? `${fmt(summary.income)} receitas + ${fmt(summary.transferIn)} transferências`
       : undefined;
 
     const expenseDetail = accountId && summary.transferOut > 0
-      ? `${fmt(summary.expense)} despesas + ${fmt(summary.transferOut)} transferencias`
+      ? `${fmt(summary.expense)} despesas + ${fmt(summary.transferOut)} transferências`
       : undefined;
 
     const cards: SummaryCard[] = [
@@ -107,10 +104,24 @@ export class DashboardComponent {
     if (summary.investment > 0) {
       cards.push({ label: 'Investimentos', value: summary.investment, type: 'neutral', icon: '💰' });
     } else {
-      cards.push({ label: 'Balanco Mensal', value: summary.balance, type: 'neutral', icon: '📊' });
+      cards.push({ label: 'Balanço Mensal', value: summary.balance, type: 'neutral', icon: '📊' });
     }
 
     return cards;
+  });
+
+  // --- Month-over-month trend indicators ---
+  readonly monthTrends = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
+    return this.transactionService.getMonthOverMonthComparison(this.year(), this.month(), accountId);
+  });
+
+  // --- Expense insights ---
+  readonly insights = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
+    return this.transactionService.getExpenseInsights(this.year(), this.month(), accountId);
   });
 
   // --- Donut chart (expenses by category) ---
@@ -148,18 +159,18 @@ export class DashboardComponent {
         {
           label: 'Receitas',
           data: monthlyTotals.map(m => m.income),
-          backgroundColor: 'rgba(16, 185, 129, 0.85)',
-          borderColor: 'rgba(16, 185, 129, 1)',
+          backgroundColor: 'rgba(0, 184, 148, 0.8)',
+          borderColor: '#00B894',
           borderWidth: 1,
-          borderRadius: 6,
+          borderRadius: 8,
         },
         {
           label: 'Despesas',
           data: monthlyTotals.map(m => m.expense),
-          backgroundColor: 'rgba(239, 68, 68, 0.85)',
-          borderColor: 'rgba(239, 68, 68, 1)',
+          backgroundColor: 'rgba(232, 67, 147, 0.8)',
+          borderColor: '#E84393',
           borderWidth: 1,
-          borderRadius: 6,
+          borderRadius: 8,
         },
       ],
     };
@@ -175,26 +186,24 @@ export class DashboardComponent {
           usePointStyle: true,
           padding: 20,
           font: { family: "'DM Sans', sans-serif", size: 12, weight: 600 },
-          color: '#475569',
+          color: '#6B7194',
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderColor: 'rgba(15, 23, 42, 0.05)',
+        backgroundColor: 'rgba(26, 29, 46, 0.95)',
+        borderColor: 'rgba(108, 92, 231, 0.2)',
         borderWidth: 1,
-        titleColor: '#0F172A',
-        bodyColor: '#475569',
+        titleColor: '#F1F5F9',
+        bodyColor: '#94A3B8',
         boxPadding: 4,
         padding: 12,
-        cornerRadius: 8,
+        cornerRadius: 10,
         callbacks: {
           label: (ctx) => {
             const value = ctx.parsed.y ?? 0;
-            const formatted = new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            }).format(value);
-            return `${ctx.dataset.label}: ${formatted}`;
+            return `${ctx.dataset.label}: ${new Intl.NumberFormat('pt-BR', {
+              style: 'currency', currency: 'BRL',
+            }).format(value)}`;
           },
         },
       },
@@ -204,27 +213,50 @@ export class DashboardComponent {
         grid: { display: false },
         ticks: {
           font: { family: "'DM Sans', sans-serif", size: 12, weight: 500 },
-          color: '#64748B',
+          color: '#6B7194',
         },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(15, 23, 42, 0.03)' },
+        grid: { color: 'rgba(108, 92, 231, 0.04)' },
         border: { dash: [4, 4] },
         ticks: {
           font: { family: "'Space Mono', monospace", size: 11 },
-          color: '#64748B',
-          callback: (value) => {
-            return new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-              maximumFractionDigits: 0,
-            }).format(value as number);
-          },
+          color: '#6B7194',
+          callback: (value) => new Intl.NumberFormat('pt-BR', {
+            style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
+          }).format(value as number),
         },
       },
     },
   };
+
+  // --- Top 3 categories ---
+  readonly topCategories = computed(() => {
+    const accountId = this.accountService.selectedAccountId();
+    this.transactionService.transactions();
+    const expensesByCategory = this.transactionService.getExpensesByCategory(
+      this.year(), this.month(), accountId,
+    );
+
+    const total = Array.from(expensesByCategory.values()).reduce((s, v) => s + v, 0);
+    const items: { icon: string; name: string; value: number; color: string; percentage: number }[] = [];
+
+    expensesByCategory.forEach((value, categoryId) => {
+      const cat = this.categoryService.getById(categoryId);
+      if (cat) {
+        items.push({
+          icon: cat.icon,
+          name: cat.name,
+          value,
+          color: cat.color,
+          percentage: total > 0 ? (value / total) * 100 : 0,
+        });
+      }
+    });
+
+    return items.sort((a, b) => b.value - a.value).slice(0, 3);
+  });
 
   // --- Recent transactions ---
   recentTransactions = computed(() => {

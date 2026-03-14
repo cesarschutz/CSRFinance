@@ -12,6 +12,40 @@
   <!-- Summary Cards -->
   <app-summary-cards [cards]="summaryCards()" />
 
+  <!-- Trend Indicators -->
+  @if (!isSavingsView()) {
+    <div class="trend-bar">
+      <div class="trend-item">
+        <span class="trend-label">Receitas</span>
+        <span class="trend-badge" [class.positive]="monthTrends().incomeChange >= 0" [class.negative]="monthTrends().incomeChange < 0">
+          {{ monthTrends().incomeChange > 0 ? '↑' : monthTrends().incomeChange < 0 ? '↓' : '→' }}
+          {{ monthTrends().incomeChange > 0 ? '+' : '' }}{{ monthTrends().incomeChange }}%
+        </span>
+      </div>
+      <div class="trend-item">
+        <span class="trend-label">Despesas</span>
+        <span class="trend-badge" [class.positive]="monthTrends().expenseChange <= 0" [class.negative]="monthTrends().expenseChange > 0">
+          {{ monthTrends().expenseChange > 0 ? '↑' : monthTrends().expenseChange < 0 ? '↓' : '→' }}
+          {{ monthTrends().expenseChange > 0 ? '+' : '' }}{{ monthTrends().expenseChange }}%
+        </span>
+      </div>
+      @if (insights().savingsRate !== 0) {
+        <div class="trend-item">
+          <span class="trend-label">Poupança</span>
+          <span class="trend-badge" [class.positive]="insights().savingsRate > 0" [class.negative]="insights().savingsRate <= 0">
+            {{ insights().savingsRate }}%
+          </span>
+        </div>
+      }
+      @if (insights().dailyAverage > 0) {
+        <div class="trend-item">
+          <span class="trend-label">Média/dia</span>
+          <span class="trend-badge neutral">{{ insights().dailyAverage | currencyBrl }}</span>
+        </div>
+      }
+    </div>
+  }
+
   <!-- Charts Grid -->
   <div class="charts-grid">
     <!-- Donut Chart: Expenses by Category -->
@@ -44,6 +78,32 @@
       </div>
     </div>
   </div>
+
+  <!-- Quick Insights Row -->
+  @if (!isSavingsView() && topCategories().length > 0) {
+    <div class="insights-section">
+      <div class="section-header">
+        <h2 class="section-title">Onde você mais gasta</h2>
+        <a class="section-link" routerLink="/reports">Ver relatórios →</a>
+      </div>
+      <div class="top-categories">
+        @for (cat of topCategories(); track cat.name; let i = $index) {
+          <div class="top-category-card" [style.animation-delay]="i * 80 + 'ms'">
+            <div class="top-cat-header">
+              <span class="top-cat-rank">#{{ i + 1 }}</span>
+              <span class="top-cat-icon">{{ cat.icon }}</span>
+              <span class="top-cat-name">{{ cat.name }}</span>
+            </div>
+            <span class="top-cat-value money">{{ cat.value | currencyBrl }}</span>
+            <div class="top-cat-bar-wrapper">
+              <div class="top-cat-bar" [style.width.%]="cat.percentage" [style.background]="cat.color"></div>
+            </div>
+            <span class="top-cat-percentage">{{ cat.percentage | number:'1.0-0' }}% dos gastos</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
 
   <!-- Investment Summary (only on checking/all view, if investments exist) -->
   @if (!isSavingsView() && hasInvestmentAccounts()) {
