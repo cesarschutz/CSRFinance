@@ -213,7 +213,7 @@
   (close)="closeModal()"
 >
   <form [formGroup]="transactionForm" (ngSubmit)="saveTransaction()" class="modern-transaction-form">
-    <div class="form-columns">
+    <div class="form-columns" [class.show-details]="showDetails()">
       <!-- Left Column -->
       <div class="form-col-left">
         <!-- Amount -->
@@ -231,7 +231,7 @@
 
         <!-- Status Toggle -->
         <div class="form-group flex-row">
-          <span class="field-icon">✅</span>
+          <span class="field-icon">☑️</span>
           <label class="inline-label">Foi paga</label>
           <label class="toggle-switch red-theme">
              <input type="checkbox"
@@ -280,7 +280,7 @@
         </div>
       </div>
 
-      <!-- Right Column -->
+      <!-- Right Column (hidden by default, shown with "Mais detalhes") -->
       <div class="form-col-right">
         <div class="recurring-section">
           <!-- Fixed toggle -->
@@ -310,18 +310,22 @@
             <div class="repeat-inputs">
                <input type="number" formControlName="repeatCount" class="modern-input repeat-count" min="2">
                <span class="repeat-text">vezes</span>
-               
                <select formControlName="repeatFrequency" class="modern-select repeat-freq">
                  <option value="monthly">Meses</option>
                  <option value="semiannual">Semestres</option>
                  <option value="annual">Anos</option>
                </select>
             </div>
-            <div class="repeat-line-divider"></div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- More/Less details toggle -->
+    <button type="button" class="btn-details-toggle" (click)="showDetails.set(!showDetails())">
+      {{ showDetails() ? 'Menos detalhes' : 'Mais detalhes' }}
+      <span class="details-chevron" [class.open]="showDetails()">›</span>
+    </button>
 
     <!-- Errors -->
     <div class="form-errors-global">

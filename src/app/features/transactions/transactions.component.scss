@@ -698,17 +698,23 @@
   .form-columns {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 0;
 
-    @include tablet {
-      flex-direction: row;
-      align-items: stretch;
-      gap: 0;
+    // When "Mais detalhes" is active, show as 2 columns on desktop
+    &.show-details {
+      @include tablet {
+        flex-direction: row;
+        align-items: stretch;
+      }
+
+      .form-col-right {
+        display: flex;
+      }
     }
   }
 
   .form-col-left {
-    flex: 1.2;
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -716,8 +722,11 @@
     min-width: 0;
     padding: 0;
 
-    @include tablet {
-      padding-right: 32px;
+    .show-details & {
+      @include tablet {
+        padding-right: 32px;
+        border-right: 1px solid var(--border);
+      }
     }
 
     > * {
@@ -727,17 +736,14 @@
 
   .form-col-right {
     flex: 1;
-    display: flex;
+    display: none;
     flex-direction: column;
-    padding: 0;
+    padding: 16px 0 0 0;
     border-top: 1px solid var(--border);
-    padding-top: 16px;
 
     @include tablet {
       border-top: none;
-      padding-top: 0;
-      border-left: 1px solid var(--border);
-      padding-left: 32px;
+      padding: 0 0 0 32px;
     }
   }
 
@@ -770,9 +776,9 @@
     }
 
     .currency-symbol {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--text-secondary);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--expense);
 
       &.income { color: var(--income); }
       &.expense { color: var(--expense); }
@@ -782,14 +788,14 @@
     .amount-input {
       border: none;
       background: transparent;
-      font-size: 1.75rem;
-      font-weight: 800;
-      color: var(--text);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--expense);
       width: 100%;
       outline: none;
       font-family: 'DM Sans', sans-serif;
       font-variant-numeric: tabular-nums;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
       padding: 0;
 
       &::placeholder {
@@ -1038,6 +1044,38 @@
       &:not(:disabled) {
         background: var(--accent-gradient);
         color: #fff;
+      }
+    }
+  }
+
+  .btn-details-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: color 0.15s;
+
+    &:hover {
+      color: var(--accent);
+    }
+
+    .details-chevron {
+      font-size: 1.1rem;
+      transition: transform 0.3s;
+      display: inline-block;
+
+      &.open {
+        transform: rotate(180deg);
       }
     }
   }

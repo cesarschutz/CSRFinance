@@ -69,6 +69,7 @@ export class TransactionsComponent implements OnInit {
   showDeleteConfirm = signal(false);
   deletingTransaction = signal<Transaction | null>(null);
   showEditScopeModal = signal(false);
+  showDetails = signal(false);
   editScopePendingData = signal<EditScopePendingData | null>(null);
 
   // Transaction Form
