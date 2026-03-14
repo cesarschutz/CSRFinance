@@ -18,7 +18,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       multi: true,
     },
   ],
-  host: { style: 'display: contents' },
+  host: { style: 'display: contents; flex: 1; min-width: 0;' },
   template: `
     <input
       #inputEl

@@ -7,6 +7,7 @@ import { Category } from '../../../core/models/category.model';
   selector: 'app-category-select',
   standalone: true,
   imports: [CommonModule],
+  host: { style: 'flex: 1; min-width: 0;' },
   templateUrl: './category-select.component.html',
   styleUrl: './category-select.component.scss',
   providers: [

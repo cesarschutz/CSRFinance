@@ -6,6 +6,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   selector: 'app-custom-calendar',
   standalone: true,
   imports: [CommonModule],
+  host: { style: 'flex: 1; min-width: 0;' },
   templateUrl: './custom-calendar.component.html',
   styleUrl: './custom-calendar.component.scss',
   providers: [
