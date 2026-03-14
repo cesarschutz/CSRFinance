@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
 import { TransactionService } from '../../../core/services/transaction.service';
-import { ThemeService } from '../../../core/services/theme.service';
+
 import { CurrencyBrlPipe } from '../../pipes/currency-brl.pipe';
 
 interface NavItem {
@@ -103,13 +103,6 @@ interface NavItem {
 
       </div>
 
-      <button class="theme-toggle" (click)="themeService.toggleTheme()" [title]="themeService.theme() === 'dark' ? 'Tema claro' : 'Tema escuro'">
-        <span class="nav-icon">{{ themeService.theme() === 'dark' ? '☀️' : '🌙' }}</span>
-        @if (!collapsed) {
-          <span class="nav-label">{{ themeService.theme() === 'dark' ? 'Tema Claro' : 'Tema Escuro' }}</span>
-        }
-      </button>
-
       <div class="sidebar-footer">
         @if (!collapsed) {
           <span class="footer-label">Patrimônio Total</span>
@@ -130,7 +123,7 @@ export class SidebarComponent {
   
   private router = inject(Router);
   private elementRef = inject(ElementRef);
-  public themeService = inject(ThemeService);
+
 
   navItems: NavItem[] = [
     { label: 'Dashboard', icon: '📊', route: '/dashboard' },

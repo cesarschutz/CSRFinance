@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FileService, FileStatus } from '../../../core/services/file.service';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-file-bar',
@@ -20,6 +21,13 @@ import { FileService, FileStatus } from '../../../core/services/file.service';
       </div>
 
       <div class="file-bar-actions">
+        <button
+          class="file-btn file-btn-theme"
+          (click)="themeService.toggleTheme()"
+          [title]="themeService.theme() === 'dark' ? 'Tema claro' : 'Tema escuro'"
+        >
+          {{ themeService.theme() === 'dark' ? '☀️' : '🌙' }}
+        </button>
         <button
           class="file-btn file-btn-save"
           (click)="fileService.saveFile()"
@@ -154,6 +162,18 @@ import { FileService, FileStatus } from '../../../core/services/file.service';
       }
     }
 
+    .file-btn-theme {
+      font-size: 1rem;
+      padding: 4px 8px;
+      line-height: 1;
+      border: none;
+
+      &:hover {
+        background: var(--surface-hover);
+        border: none;
+      }
+    }
+
     .file-btn-save {
       background: var(--accent);
       color: #fff;
@@ -202,6 +222,7 @@ import { FileService, FileStatus } from '../../../core/services/file.service';
 })
 export class FileBarComponent {
   readonly fileService = inject(FileService);
+  readonly themeService = inject(ThemeService);
 
   getStatusLabel(): string {
     const labels: Record<FileStatus, string> = {
