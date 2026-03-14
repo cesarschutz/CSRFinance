@@ -120,7 +120,7 @@
 .filter-tabs {
   display: flex;
   gap: 0;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   padding: 4px;
@@ -168,7 +168,7 @@
   padding: 10px 16px;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface);
   color: var(--text);
   font-size: 0.875rem;
   font-family: 'DM Sans', sans-serif;
@@ -185,7 +185,7 @@
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-bg), 0 0 16px rgba(124, 58, 237, 0.1);
     outline: none;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface);
   }
 
   @include tablet {
@@ -225,7 +225,7 @@
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+    border-bottom: 1px solid var(--border);
     white-space: nowrap;
   }
 
@@ -233,7 +233,7 @@
     padding: 16px;
     font-size: 0.9rem;
     color: var(--text);
-    border-bottom: 1px solid rgba(15, 23, 42, 0.03);
+    border-bottom: 1px solid var(--border);
     vertical-align: middle;
   }
 
@@ -483,7 +483,7 @@
 .card-actions {
   display: flex;
   gap: 8px;
-  border-top: 1px solid rgba(15, 23, 42, 0.05);
+  border-top: 1px solid var(--border);
   padding-top: 12px;
   margin-top: 4px;
 
@@ -730,13 +730,13 @@
     display: flex;
     flex-direction: column;
     padding: 0;
-    border-top: 1px solid rgba(15, 23, 42, 0.06);
+    border-top: 1px solid var(--border);
     padding-top: 16px;
 
     @include tablet {
       border-top: none;
       padding-top: 0;
-      border-left: 1px solid rgba(15, 23, 42, 0.06);
+      border-left: 1px solid var(--border);
       padding-left: 32px;
     }
   }
@@ -808,12 +808,12 @@
 
   .divider {
     height: 1px;
-    background: rgba(15, 23, 42, 0.06);
+    background: var(--border);
     margin: 0;
     width: 100%;
 
     &.dotted {
-      border-bottom: 1px dashed rgba(15, 23, 42, 0.1);
+      border-bottom: 1px dashed var(--border);
       background: transparent;
       margin: 12px 0;
     }
@@ -841,7 +841,7 @@
   .modern-input {
     flex: 1;
     border: none;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+    border-bottom: 1px solid var(--border);
     background: transparent;
     padding: 8px 0;
     border-radius: 0;
@@ -999,7 +999,7 @@
   .modern-actions {
     margin-top: 16px;
     padding-top: 16px;
-    border-top: 1px solid rgba(15, 23, 42, 0.05);
+    border-top: 1px solid var(--border);
     display: flex;
     gap: 16px;
     justify-content: flex-end;
@@ -1026,17 +1026,17 @@
     }
 
     .btn-save-modern {
-      background: rgba(15, 23, 42, 0.1);
+      background: var(--surface);
       border: none;
       color: var(--text-muted);
 
       &:not(:disabled):hover {
-        background: rgba(15, 23, 42, 0.15);
+        background: var(--surface-hover);
       }
 
-      // If form is valid, maybe change color to red or generic dark
+      // If form is valid, use accent gradient
       &:not(:disabled) {
-        background: var(--text);
+        background: var(--accent-gradient);
         color: #fff;
       }
     }

@@ -18,7 +18,7 @@
   padding: 10px 0;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+  border-bottom: 1px solid var(--border);
   border-radius: 0;
   cursor: pointer;
   transition: all 0.2s;
@@ -28,7 +28,7 @@
 
   &:hover {
     background: transparent;
-    border-bottom-color: rgba(15, 23, 42, 0.25);
+    border-bottom-color: var(--text-muted);
   }
 
   &.open {
@@ -84,8 +84,8 @@
   left: 0;
   width: 100%;
   min-width: 200px;
-  background: white;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: var(--surface-solid);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
   z-index: 1000;
@@ -129,7 +129,7 @@
   }
 
   &.active {
-    background: rgba(15, 23, 42, 0.04);
+    background: var(--sidebar-hover);
   }
 
   .item-icon {

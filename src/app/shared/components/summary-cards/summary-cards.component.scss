@@ -36,9 +36,23 @@
     box-shadow: var(--shadow-md);
   }
 
+  &.card-balance,
+  &.card-neutral {
+    border-top: 3px solid var(--accent);
+  }
+
+  &.card-income {
+    border-top: 3px solid var(--income);
+  }
+
+  &.card-expense {
+    border-top: 3px solid var(--expense);
+  }
+
   &.card-balance {
-    border: 1px solid rgba(99, 102, 241, 0.15);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 248, 255, 0.7) 100%);
+    border: 1px solid var(--border-glow);
+    border-top: 3px solid var(--accent);
+    background: var(--surface-hover);
   }
 
   &.card-income::after,
@@ -114,6 +128,10 @@
     font-size: 1.35rem;
     @include desktop { font-size: 1.5rem; }
   }
+
+  &.value-income { color: var(--income); }
+  &.value-expense { color: var(--expense); }
+  &.value-balance, &.value-neutral { color: var(--accent); }
 }
 
 .card-detail {
