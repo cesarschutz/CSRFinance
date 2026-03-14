@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
@@ -6,6 +6,7 @@ import { ChartConfiguration } from 'chart.js';
 import { TransactionService } from '../../core/services/transaction.service';
 import { CategoryService } from '../../core/services/category.service';
 import { AccountService } from '../../core/services/account.service';
+import { ContextService } from '../../core/services/context.service';
 
 import { MonthPickerComponent } from '../../shared/components/month-picker/month-picker.component';
 import { DonutChartComponent, DonutSegment } from '../../shared/components/donut-chart/donut-chart.component';
@@ -54,6 +55,7 @@ export class ReportsComponent {
   private transactionService = inject(TransactionService);
   private categoryService = inject(CategoryService);
   private accountService = inject(AccountService);
+  private contextService = inject(ContextService);
 
   activeTab = signal<ReportTab>('category');
   year = signal(new Date().getFullYear());
@@ -72,26 +74,38 @@ export class ReportsComponent {
     this.activeTab.set(tab);
   }
 
+  private accountsTabs: { id: ReportTab; label: string; icon: string }[] = [
+    { id: 'category', label: 'Categorias', icon: '🏷️' },
+    { id: 'daily', label: 'Diário', icon: '📅' },
+    { id: 'balance', label: 'Balanço', icon: '⚖️' },
+    { id: 'patrimony', label: 'Patrimônio', icon: '🏦' },
+    { id: 'cashflow', label: 'Fluxo de Caixa', icon: '💸' },
+    { id: 'comparison', label: 'Comparativo', icon: '🔄' },
+    { id: 'insights', label: 'Análises', icon: '🧠' },
+    { id: 'annual-categories', label: 'Anual Categorias', icon: '📅' },
+    { id: 'annual-fixed', label: 'Despesas Fixas', icon: '📌' },
+    { id: 'annual-heatmap', label: 'Mês a Mês', icon: '🗓️' },
+  ];
+
+  private investmentsTabs: { id: ReportTab; label: string; icon: string }[] = [
+    { id: 'investments', label: 'Resumo', icon: '💰' },
+    { id: 'patrimony', label: 'Evolução', icon: '📈' },
+    { id: 'annual-heatmap', label: 'Mês a Mês', icon: '🗓️' },
+  ];
+
   readonly tabs = computed(() => {
-    const base: { id: ReportTab; label: string; icon: string }[] = [
-      { id: 'category', label: 'Categorias', icon: '🏷️' },
-      { id: 'daily', label: 'Diário', icon: '📅' },
-      { id: 'balance', label: 'Balanço', icon: '⚖️' },
-      { id: 'patrimony', label: 'Patrimônio', icon: '🏦' },
-      { id: 'cashflow', label: 'Fluxo de Caixa', icon: '💸' },
-      { id: 'comparison', label: 'Comparativo', icon: '🔄' },
-      { id: 'insights', label: 'Análises', icon: '🧠' },
-      { id: 'annual-categories' as ReportTab, label: 'Anual Categorias', icon: '📅' },
-      { id: 'annual-fixed' as ReportTab, label: 'Despesas Fixas', icon: '📌' },
-      { id: 'annual-heatmap' as ReportTab, label: 'Mês a Mês', icon: '🗓️' },
-    ];
-
-    if (this.hasInvestmentAccounts()) {
-      base.push({ id: 'investments', label: 'Investimentos', icon: '💰' });
-    }
-
-    return base;
+    return this.contextService.isAccounts()
+      ? this.accountsTabs
+      : this.investmentsTabs;
   });
+
+  constructor() {
+    // Reset active tab when context changes
+    effect(() => {
+      const isAccounts = this.contextService.isAccounts();
+      this.activeTab.set(isAccounts ? 'category' : 'investments');
+    });
+  }
 
   // ==============================
   // Tab 1 - Por Categoria

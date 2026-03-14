@@ -111,7 +111,7 @@
   &.active {
     color: var(--accent);
     border-bottom-color: var(--accent);
-    background: rgba(108, 92, 231, 0.04);
+    background: var(--accent-bg);
     border-radius: 8px 8px 0 0;
   }
 }
@@ -290,12 +290,12 @@
   font-weight: 700;
 
   &.positive {
-    background: rgba(0, 184, 148, 0.12);
+    background: var(--income-bg);
     color: var(--income);
   }
 
   &.negative {
-    background: rgba(232, 67, 147, 0.12);
+    background: var(--expense-bg);
     color: var(--expense);
   }
 }
@@ -385,7 +385,7 @@
 .category-bar-wrapper {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -567,13 +567,13 @@
   display: flex;
   padding: 14px 20px;
   border-bottom: 1px solid var(--glass-border);
-  background: rgba(108, 92, 231, 0.03);
+  background: var(--accent-bg);
 }
 
 .table-row {
   display: flex;
   padding: 14px 20px;
-  border-bottom: 1px solid rgba(108, 92, 231, 0.04);
+  border-bottom: 1px solid var(--glass-border);
   transition: background var(--transition-fast);
 
   &:last-child {
@@ -624,7 +624,7 @@
   font-size: 0.6rem;
   padding: 2px 6px;
   border-radius: var(--radius-full);
-  background: rgba(108, 92, 231, 0.1);
+  background: var(--accent-bg);
   color: var(--accent);
   font-weight: 700;
   text-transform: uppercase;
@@ -711,12 +711,12 @@
   font-weight: 700;
 
   &.positive {
-    background: rgba(0, 184, 148, 0.12);
+    background: var(--income-bg);
     color: var(--income);
   }
 
   &.negative {
-    background: rgba(232, 67, 147, 0.12);
+    background: var(--expense-bg);
     color: var(--expense);
   }
 }
@@ -805,12 +805,12 @@
   align-self: flex-start;
 
   &.positive {
-    background: rgba(0, 184, 148, 0.12);
+    background: var(--income-bg);
     color: var(--income);
   }
 
   &.negative {
-    background: rgba(232, 67, 147, 0.12);
+    background: var(--expense-bg);
     color: var(--expense);
   }
 }
@@ -844,14 +844,14 @@
 .weekday-bar {
   width: 70%;
   max-width: 40px;
-  background: rgba(108, 92, 231, 0.5);
+  background: var(--accent-bg);
   border-radius: 6px 6px 2px 2px;
   min-height: 4px;
   transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.weekday-highlight {
     background: var(--accent);
-    box-shadow: 0 0 12px rgba(108, 92, 231, 0.4);
+    box-shadow: 0 0 12px var(--accent-glow);
   }
 }
 
@@ -950,8 +950,8 @@
 }
 
 .insight-card {
-  background: linear-gradient(135deg, rgba(108, 92, 231, 0.06), rgba(108, 92, 231, 0.02));
-  border: 1px solid rgba(108, 92, 231, 0.15);
+  background: var(--accent-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   padding: 16px;
   display: flex;
@@ -1151,7 +1151,7 @@
     padding: 10px 8px;
     text-align: right;
     font-size: 0.75rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--glass-border);
   }
 
   th {
@@ -1160,7 +1160,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-size: 0.65rem;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--surface);
     position: sticky;
     top: 0;
   }
@@ -1206,14 +1206,15 @@
 }
 
 .no-value {
-  color: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  opacity: 0.4;
 }
 
 .th-total, .td-total {
   min-width: 100px;
   font-weight: 800 !important;
   color: var(--expense) !important;
-  background: rgba(251, 113, 133, 0.04);
+  background: var(--expense-bg);
 }
 
 .th-avg, .td-avg {
@@ -1311,8 +1312,9 @@
   border: 1px solid transparent;
 
   &.has-value {
-    background: rgba(251, 113, 133, 0.06);
-    border-color: rgba(251, 113, 133, 0.1);
+    background: var(--expense-bg);
+    border-color: var(--expense);
+    border-color: color-mix(in srgb, var(--expense) 15%, transparent);
   }
 }
 
@@ -1331,7 +1333,8 @@
 
 .fixed-month-empty {
   font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  opacity: 0.4;
 }
 
 // ==============================

@@ -33,14 +33,14 @@ import { CommonModule } from '@angular/common';
       font-size: 1.25rem;
       color: var(--text-secondary);
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--surface);
       border: 1px solid var(--glass-border);
 
       &:hover {
         background: var(--accent-bg);
         color: var(--accent);
         border-color: var(--accent);
-        box-shadow: 0 0 12px rgba(124, 58, 237, 0.2);
+        box-shadow: 0 0 12px var(--accent-glow);
       }
     }
 

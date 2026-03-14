@@ -67,8 +67,10 @@ export class AccountsComponent {
   getAccountTypeLabel(type: AccountType): string {
     switch (type) {
       case 'checking': return 'Corrente';
-      case 'savings': return 'Poupanca';
+      case 'savings': return 'Poupança';
+      case 'credit_card': return 'Cartão de Crédito';
       case 'investment': return 'Investimento';
+      default: return type;
     }
   }
 

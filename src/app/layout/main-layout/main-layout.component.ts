@@ -5,6 +5,7 @@ import { SidebarComponent } from '../../shared/components/sidebar/sidebar.compon
 import { MobileNavComponent } from '../mobile-nav/mobile-nav.component';
 import { FileBarComponent } from '../../shared/components/file-bar/file-bar.component';
 import { ContextService, AppContext } from '../../core/services/context.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -80,10 +81,10 @@ import { ContextService, AppContext } from '../../core/services/context.service'
       align-items: center;
       justify-content: space-between;
       padding: 12px 20px;
-      background: rgba(10, 10, 18, 0.8);
+      background: var(--surface-solid);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid var(--glass-border);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -107,15 +108,15 @@ import { ContextService, AppContext } from '../../core/services/context.service'
       align-items: center;
       justify-content: center;
       border-radius: 10px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: var(--surface);
+      border: 1px solid var(--glass-border);
       font-size: 1rem;
       color: var(--text-secondary);
       transition: all 0.2s;
       cursor: pointer;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: var(--surface-hover);
         color: var(--text);
       }
     }
@@ -147,8 +148,8 @@ import { ContextService, AppContext } from '../../core/services/context.service'
 
     .context-toggle {
       display: flex;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: var(--surface);
+      border: 1px solid var(--glass-border);
       border-radius: 12px;
       padding: 3px;
       gap: 2px;
@@ -190,7 +191,7 @@ import { ContextService, AppContext } from '../../core/services/context.service'
 
       &:not(.active):hover {
         color: var(--text-secondary);
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--surface-hover);
       }
     }
 
@@ -234,6 +235,7 @@ import { ContextService, AppContext } from '../../core/services/context.service'
 export class MainLayoutComponent {
   contextService = inject(ContextService);
   private router = inject(Router);
+  private themeService = inject(ThemeService);
 
   sidebarCollapsed = signal(false);
   isMobile = signal(window.innerWidth < 768);

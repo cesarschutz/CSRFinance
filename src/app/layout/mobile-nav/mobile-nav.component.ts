@@ -35,10 +35,10 @@ interface NavItem {
       display: flex;
       justify-content: space-around;
       padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
-      background: rgba(10, 10, 18, 0.9);
+      background: var(--surface-solid);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      border-top: 1px solid var(--glass-border);
       z-index: 100;
     }
 

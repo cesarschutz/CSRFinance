@@ -85,6 +85,77 @@
   --transition-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+// ======================
+// Light Theme Override
+// ======================
+
+[data-theme="light"] {
+  // Base surfaces
+  --bg: #F0F2F8;
+  --bg-gradient: radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.06) 0%, #F0F2F8 60%),
+                 radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
+  --surface: #FFFFFF;
+  --surface-solid: #FFFFFF;
+  --surface-hover: rgba(0, 0, 0, 0.03);
+  --surface-raised: rgba(0, 0, 0, 0.02);
+
+  // Text
+  --text: #1A1D2E;
+  --text-secondary: #6B7194;
+  --text-muted: #9CA3BF;
+
+  // Accent
+  --accent: #6C5CE7;
+  --accent-hover: #5A4BD1;
+  --accent-bg: rgba(108, 92, 231, 0.1);
+  --accent-glow: rgba(108, 92, 231, 0.15);
+  --accent-gradient: linear-gradient(135deg, #6C5CE7 0%, #8B5CF6 100%);
+
+  // Semantic
+  --income: #00B894;
+  --income-bg: rgba(0, 184, 148, 0.1);
+  --income-glow: rgba(0, 184, 148, 0.15);
+  --expense: #E84393;
+  --expense-bg: rgba(232, 67, 147, 0.1);
+  --expense-glow: rgba(232, 67, 147, 0.15);
+  --transfer: #0984E3;
+  --transfer-bg: rgba(9, 132, 227, 0.1);
+  --yield: #E17055;
+  --yield-bg: rgba(225, 112, 85, 0.1);
+
+  // Borders
+  --border: #E8EAF2;
+  --border-glow: rgba(108, 92, 231, 0.2);
+
+  // Danger / Warning
+  --danger: #E74C3C;
+  --danger-bg: rgba(231, 76, 60, 0.1);
+  --warning: #E17055;
+  --warning-bg: rgba(225, 112, 85, 0.1);
+
+  // Sidebar
+  --sidebar-bg: #1A1D2E;
+  --sidebar-bg-end: #2D3154;
+  --sidebar-text: rgba(255, 255, 255, 0.6);
+  --sidebar-text-active: #FFFFFF;
+  --sidebar-hover: rgba(255, 255, 255, 0.06);
+  --sidebar-active: rgba(108, 92, 231, 0.2);
+
+  // Glass — Light
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-blur: 20px;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+
+  // Shadows
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 24px rgba(108, 92, 231, 0.08);
+  --shadow-bento: 0 8px 32px -8px rgba(0, 0, 0, 0.1),
+                  inset 0 0.5px 0 rgba(255, 255, 255, 0.8);
+}
+
 // SCSS variables for breakpoints
 $bp-tablet: 768px;
 $bp-desktop: 1024px;

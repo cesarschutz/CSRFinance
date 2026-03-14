@@ -105,7 +105,7 @@ import { ThemeService } from '../../../core/services/theme.service';
       white-space: nowrap;
 
       &.status-saved {
-        background: rgba(0, 184, 148, 0.12);
+        background: var(--income-bg);
         color: var(--income);
       }
 
@@ -115,12 +115,12 @@ import { ThemeService } from '../../../core/services/theme.service';
       }
 
       &.status-unsaved {
-        background: rgba(232, 67, 147, 0.1);
+        background: var(--expense-bg);
         color: var(--expense);
       }
 
       &.status-error {
-        background: rgba(255, 107, 107, 0.12);
+        background: var(--danger-bg);
         color: var(--danger);
       }
     }
@@ -192,8 +192,8 @@ import { ThemeService } from '../../../core/services/theme.service';
       justify-content: center;
       gap: 12px;
       padding: 8px 16px;
-      background: rgba(255, 107, 107, 0.1);
-      border: 1px solid rgba(255, 107, 107, 0.2);
+      background: var(--danger-bg);
+      border: 1px solid var(--danger);
       color: var(--danger);
       font-size: 0.75rem;
       border-radius: var(--radius-xs);
@@ -215,7 +215,7 @@ import { ThemeService } from '../../../core/services/theme.service';
       flex-shrink: 0;
 
       &:hover {
-        background: rgba(255, 107, 107, 0.15);
+        background: var(--danger-bg);
       }
     }
   `],
