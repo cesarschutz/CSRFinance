@@ -14,15 +14,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0;
+  gap: 8px;
+  padding: 10px 0;
   background: transparent;
   border: none;
   border-bottom: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 0;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: var(--font-primary);
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.9375rem;
+  min-height: 42px;
 
   &:hover {
     background: transparent;
@@ -39,33 +41,40 @@
 .selected-value {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
 
   .cat-icon {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    flex-shrink: 0;
     @include flex-center;
   }
 
   .cat-name {
     color: var(--text);
     font-weight: 500;
+    font-size: 0.9375rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
 .placeholder {
   color: var(--text-muted);
+  font-size: 0.9375rem;
 }
 
 .chevron {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: var(--text-muted);
   transition: transform 0.3s;
-  line-height: 0;
-  margin-top: -6px;
+  flex-shrink: 0;
+  line-height: 1;
 
   &.up {
     transform: rotate(180deg);
-    margin-top: 6px;
   }
 }
 

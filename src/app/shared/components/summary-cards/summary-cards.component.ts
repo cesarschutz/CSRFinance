@@ -21,7 +21,7 @@ export interface SummaryCard {
           <div class="card-icon">{{ card.icon }}</div>
           <div class="card-content">
             <span class="card-label">{{ card.label }}</span>
-            <span class="card-value money" [class]="'value-' + card.type">
+            <span class="card-value" [class]="'value-' + card.type">
               {{ card.value | currencyBrl }}
             </span>
             @if (card.detail) {

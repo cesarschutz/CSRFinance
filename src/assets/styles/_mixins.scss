@@ -31,9 +31,10 @@
 }
 
 @mixin money-value($size: 1rem) {
-  font-family: 'Space Mono', monospace;
+  font-family: 'DM Sans', sans-serif;
   font-size: $size;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 // ======================
