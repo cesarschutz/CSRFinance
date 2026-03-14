@@ -218,7 +218,9 @@
       <div class="form-col-left">
         <!-- Amount -->
         <div class="amount-status-row" [class.income-border]="transactionForm.value.type === 'income'">
-          <div class="amount-input-group">
+          <div class="amount-input-group"
+               [class.expense]="transactionForm.value.type === 'expense'"
+               [class.income]="transactionForm.value.type === 'income'">
             <span class="field-icon">💳</span>
             <span class="currency-symbol"
                   [class.expense]="transactionForm.value.type === 'expense'"
@@ -356,7 +358,7 @@
       <div class="form-col-left">
         <!-- Amount -->
         <div class="amount-status-row" style="border-bottom-color: var(--transfer);">
-          <div class="amount-input-group">
+          <div class="amount-input-group transfer">
             <span class="field-icon">💳</span>
             <span class="currency-symbol transfer">R$</span>
             <app-currency-input formControlName="amount" cssClass="amount-input" placeholder="0,00"></app-currency-input>

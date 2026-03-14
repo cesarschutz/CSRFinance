@@ -785,23 +785,14 @@
       &.transfer { color: var(--transfer); }
     }
 
-    .amount-input {
-      border: none;
-      background: transparent;
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--expense);
-      width: 100%;
-      outline: none;
-      font-family: 'DM Sans', sans-serif;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.3px;
-      padding: 0;
+    color: var(--expense);
 
-      &::placeholder {
-        color: var(--text-muted);
-        font-weight: 500;
-      }
+    &.income {
+      color: var(--income);
+    }
+
+    &.transfer {
+      color: var(--transfer);
     }
   }
 

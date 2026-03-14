@@ -34,6 +34,26 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       (blur)="onTouched()"
     />
   `,
+  styles: [`
+    :host input {
+      border: none;
+      background: transparent;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: inherit;
+      width: 100%;
+      outline: none;
+      font-family: 'DM Sans', sans-serif;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.3px;
+      padding: 0;
+
+      &::placeholder {
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+    }
+  `],
 })
 export class CurrencyInputComponent implements ControlValueAccessor {
   @Input() cssClass = '';
